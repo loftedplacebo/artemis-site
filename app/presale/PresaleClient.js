@@ -5,62 +5,58 @@ import Link from 'next/link';
 import {
   useAccount,
   useDisconnect,
-  useSendTransaction,
+  useReadContract,
   useSwitchChain,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
-import { parseEther, parseUnits } from 'viem';
-import { mainnet } from 'wagmi/chains';
+import { formatUnits, parseUnits } from 'viem';
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
   Copy,
   ExternalLink,
   Loader2,
-  Lock,
+  RefreshCw,
   ShieldCheck,
-  TrendingDown,
   Wallet,
 } from 'lucide-react';
-import { useConnectModal, useAccountModal } from '@rainbow-me/rainbowkit';
+import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
 
 import {
-  MINIMUM_USD,
-  USDC_ETHEREUM_ADDRESS,
-  USDT_ETHEREUM_ADDRESS,
-  ERC20_TRANSFER_ABI,
-} from '@/lib/web3/constants';
-
+  ARTEMIS_CHAIN,
+  ARTEMIS_EXPLORER_TX_BASE,
+  ARTEMIS_PRESALE_ABI,
+  ARTEMIS_SEPOLIA_CONTRACTS,
+  ERC20_APPROVAL_ABI,
+} from '@/lib/web3/artemisContracts';
 import {
+  isUserRejectedError,
   mapTransactionErrorToNotice,
   mapWalletErrorToNotice,
-  isUserRejectedError,
 } from '@/lib/web3/errors';
 
-const TREASURY_WALLET = process.env.NEXT_PUBLIC_TREASURY_WALLET;
-const CURRENT_BATCH_PRICE = 0.25;
+const TOKEN_DECIMALS = 18;
+const STABLE_DECIMALS = 6;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const acceptedAssets = [
-  { symbol: 'ETH', network: 'Ethereum' },
-  { symbol: 'USDC', network: 'Ethereum' },
-  { symbol: 'USDT', network: 'Ethereum' },
+  {
+    symbol: 'USDC',
+    label: 'USDC',
+    address: ARTEMIS_SEPOLIA_CONTRACTS.usdc,
+    buyFunction: 'buyWithUSDC',
+    quoteFunction: 'quoteForUSDC',
+  },
+  {
+    symbol: 'USDT',
+    label: 'USDT',
+    address: ARTEMIS_SEPOLIA_CONTRACTS.usdt,
+    buyFunction: 'buyWithUSDT',
+    quoteFunction: 'quoteForUSDT',
+  },
 ];
-
-function formatAddress(address) {
-  if (!address) return '';
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-function normaliseConnectorName(name = '') {
-  const lower = name.toLowerCase();
-
-  if (lower.includes('meta')) return 'MetaMask';
-  if (lower.includes('coinbase')) return 'Coinbase Wallet';
-  if (lower.includes('walletconnect')) return 'WalletConnect';
-
-  return name;
-}
 
 function Button({ className = '', variant = 'default', children, type = 'button', ...props }) {
   const base =
@@ -84,17 +80,79 @@ function Button({ className = '', variant = 'default', children, type = 'button'
   );
 }
 
-function NumberInput({ label, value, onChange, suffix }) {
+function Divider() {
+  return <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />;
+}
+
+function formatAddress(address) {
+  if (!address) return '';
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function normaliseConnectorName(name = '') {
+  const lower = name.toLowerCase();
+
+  if (lower.includes('meta')) return 'MetaMask';
+  if (lower.includes('coinbase')) return 'Coinbase Wallet';
+  if (lower.includes('walletconnect')) return 'WalletConnect';
+
+  return name;
+}
+
+function safeParseStableAmount(value) {
+  const normalized = String(value || '').trim().replace(',', '.');
+
+  if (!normalized || !/^\d+(\.\d{0,6})?$/.test(normalized)) {
+    return 0n;
+  }
+
+  try {
+    return parseUnits(normalized, STABLE_DECIMALS);
+  } catch {
+    return 0n;
+  }
+}
+
+function formatTokenAmount(value, maximumFractionDigits = 2) {
+  const amount = Number(formatUnits(value || 0n, TOKEN_DECIMALS));
+  return amount.toLocaleString(undefined, { maximumFractionDigits });
+}
+
+function formatStableAmount(value, maximumFractionDigits = 2) {
+  const amount = Number(formatUnits(value || 0n, STABLE_DECIMALS));
+  return amount.toLocaleString(undefined, { maximumFractionDigits });
+}
+
+function formatUsd(value, maximumFractionDigits = 2) {
+  return `$${formatStableAmount(value, maximumFractionDigits)}`;
+}
+
+function tupleValue(data, index, fallback) {
+  if (!data) return fallback;
+  return data[index] ?? fallback;
+}
+
+function percentage(numerator, denominator) {
+  if (!denominator || denominator === 0n) return 0;
+  return Number((numerator * 10000n) / denominator) / 100;
+}
+
+function NumberInput({ label, value, onChange, suffix, minAmount }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="text-[11px] uppercase tracking-[0.24em] text-blue-200/45">{label}</div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-[11px] uppercase tracking-[0.24em] text-blue-200/45">{label}</div>
+        {minAmount > 0n && (
+          <div className="text-xs text-blue-100/45">Min {formatUsd(minAmount, 0)}</div>
+        )}
+      </div>
       <div className="mt-3 flex items-center justify-between gap-3">
         <input
           type="number"
           min="0"
-          step="0.0001"
+          step="0.000001"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(event) => onChange(event.target.value)}
           className="w-full bg-transparent text-3xl font-semibold text-white outline-none"
           placeholder="0"
           inputMode="decimal"
@@ -106,135 +164,225 @@ function NumberInput({ label, value, onChange, suffix }) {
   );
 }
 
-function Divider() {
-  return <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />;
-}
-
-function validateAmount(amountValue) {
-  const amount = Number(amountValue || 0);
-  return Number.isFinite(amount) && amount > 0 ? amount : 0;
-}
-
-function calculateEstimatedUsdValue(amountValue, asset, assetUsdPrice) {
-  const amount = validateAmount(amountValue);
-  if (amount <= 0) return 0;
-  return amount * assetUsdPrice;
-}
-
-function calculateEstimatedTokens(usdValue) {
-  if (usdValue <= 0) return '0';
-  return (usdValue / CURRENT_BATCH_PRICE).toLocaleString(undefined, {
-    maximumFractionDigits: 0,
-  });
+function Stat({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+      <div className="text-[11px] uppercase tracking-[0.2em] text-blue-200/45">{label}</div>
+      <div className="mt-2 text-lg font-semibold text-white">{value}</div>
+    </div>
+  );
 }
 
 export default function ArtemisPresalePage() {
-  const [selectedAsset, setSelectedAsset] = useState('ETH');
+  const [selectedAssetSymbol, setSelectedAssetSymbol] = useState('USDC');
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [ethUsdPrice, setEthUsdPrice] = useState(null);
-  const [priceLoading, setPriceLoading] = useState(true);
-  const [priceError, setPriceError] = useState('');
-  const [actionMessage, setActionMessage] = useState('');
   const [walletNotice, setWalletNotice] = useState(null);
   const [transactionNotice, setTransactionNotice] = useState(null);
+  const [actionMessage, setActionMessage] = useState('');
+  const [activeTxHash, setActiveTxHash] = useState(null);
+  const [txPhase, setTxPhase] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailStatus, setEmailStatus] = useState('');
 
   const { address, isConnected, connector, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
   const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
-
   const {
-    data: ethTxHash,
-    sendTransaction,
-    isPending: isSendingTransaction,
-    error: sendError,
-  } = useSendTransaction();
-
-  const {
-    data: tokenTxHash,
-    writeContract,
-    isPending: isWritingContract,
+    writeContractAsync,
+    isPending: isOpeningWallet,
     error: writeError,
   } = useWriteContract();
 
-  const activeTxHash = ethTxHash || tokenTxHash;
+  const selectedAsset = useMemo(
+    () => acceptedAssets.find((asset) => asset.symbol === selectedAssetSymbol) || acceptedAssets[0],
+    [selectedAssetSymbol]
+  );
+
+  const parsedPaymentAmount = useMemo(
+    () => safeParseStableAmount(paymentAmount),
+    [paymentAmount]
+  );
+
+  const saleStatusRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'getSaleStatus',
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      refetchInterval: 15000,
+    },
+  });
+
+  const presaleCapRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'presaleTokenCap',
+    chainId: ARTEMIS_CHAIN.id,
+  });
+
+  const minimumPurchaseRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'minimumPurchaseUsd',
+    chainId: ARTEMIS_CHAIN.id,
+  });
+
+  const batchCountRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'getBatchCount',
+    chainId: ARTEMIS_CHAIN.id,
+  });
+
+  const saleActive = tupleValue(saleStatusRead.data, 0, false);
+  const claimActive = tupleValue(saleStatusRead.data, 1, false);
+  const salePaused = tupleValue(saleStatusRead.data, 2, false);
+  const currentBatchId = tupleValue(saleStatusRead.data, 3, 0n);
+  const totalTokensSold = tupleValue(saleStatusRead.data, 4, 0n);
+  const totalUsdRaised = tupleValue(saleStatusRead.data, 5, 0n);
+  const presaleCap = presaleCapRead.data || 0n;
+  const minimumPurchaseUsd = minimumPurchaseRead.data || 0n;
+  const batchCount = batchCountRead.data || 0n;
+
+  const currentBatchRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'getBatchInfo',
+    args: [currentBatchId],
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: batchCount > 0n,
+      refetchInterval: 15000,
+    },
+  });
+
+  const buyerDashboardRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'getBuyerDashboard',
+    args: [address || ZERO_ADDRESS],
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: Boolean(isConnected && address),
+      refetchInterval: 15000,
+    },
+  });
+
+  const allowanceRead = useReadContract({
+    abi: ERC20_APPROVAL_ABI,
+    address: selectedAsset.address,
+    functionName: 'allowance',
+    args: [address || ZERO_ADDRESS, ARTEMIS_SEPOLIA_CONTRACTS.presale],
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: Boolean(isConnected && address),
+      refetchInterval: 15000,
+    },
+  });
+
+  const balanceRead = useReadContract({
+    abi: ERC20_APPROVAL_ABI,
+    address: selectedAsset.address,
+    functionName: 'balanceOf',
+    args: [address || ZERO_ADDRESS],
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: Boolean(isConnected && address),
+      refetchInterval: 15000,
+    },
+  });
+
+  const quoteRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: selectedAsset.quoteFunction,
+    args: [parsedPaymentAmount],
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: parsedPaymentAmount > 0n,
+    },
+  });
 
   const {
     isLoading: isConfirmingTransaction,
     isSuccess: isTransactionConfirmed,
     error: receiptError,
   } = useWaitForTransactionReceipt({
-    hash: activeTxHash,
+    hash: activeTxHash || undefined,
+    chainId: ARTEMIS_CHAIN.id,
   });
+
+  const selectedWalletName = connector ? normaliseConnectorName(connector.name) : null;
+  const isOnSepolia = chain?.id === ARTEMIS_CHAIN.id;
+  const allowance = allowanceRead.data || 0n;
+  const selectedBalance = balanceRead.data || 0n;
+  const approvalNeeded = parsedPaymentAmount > 0n && allowance < parsedPaymentAmount;
+  const meetsMinimum =
+    parsedPaymentAmount > 0n && (!minimumPurchaseUsd || parsedPaymentAmount >= minimumPurchaseUsd);
+  const hasEnoughBalance = selectedBalance >= parsedPaymentAmount;
+  const quoteUsdUsed = tupleValue(quoteRead.data, 0, 0n);
+  const quotedTokens = tupleValue(quoteRead.data, 1, 0n);
+  const quoteStartBatch = tupleValue(quoteRead.data, 2, currentBatchId);
+  const quoteEndBatch = tupleValue(quoteRead.data, 3, currentBatchId);
+  const quoteUsesFullAmount = parsedPaymentAmount === 0n || quoteUsdUsed === parsedPaymentAmount;
+
+  const batchTokenCap = tupleValue(currentBatchRead.data, 0, 0n);
+  const batchTokensSold = tupleValue(currentBatchRead.data, 1, 0n);
+  const currentPriceUsd = tupleValue(currentBatchRead.data, 2, 0n);
+  const batchTokensRemaining = tupleValue(currentBatchRead.data, 3, 0n);
+
+  const totalTokensRemaining = presaleCap > totalTokensSold ? presaleCap - totalTokensSold : 0n;
+  const totalSoldPercent = percentage(totalTokensSold, presaleCap);
+  const batchSoldPercent = percentage(batchTokensSold, batchTokenCap);
+
+  const buyerUsdSpent = tupleValue(buyerDashboardRead.data, 0, 0n);
+  const buyerTokensAllocated = tupleValue(buyerDashboardRead.data, 1, 0n);
+  const buyerTokensClaimed = tupleValue(buyerDashboardRead.data, 2, 0n);
+  const buyerClaimable = tupleValue(buyerDashboardRead.data, 3, 0n);
+  const buyerPurchaseCount = tupleValue(buyerDashboardRead.data, 4, 0n);
+
+  const isSubmittingTransaction = isOpeningWallet || isConfirmingTransaction;
+  const explorerUrl = activeTxHash ? `${ARTEMIS_EXPLORER_TX_BASE}/${activeTxHash}` : null;
+
+  const primaryButtonLabel = useMemo(() => {
+    if (!isConnected) return 'Connect Wallet';
+    if (!isOnSepolia) return 'Switch to Sepolia';
+    if (isOpeningWallet) return 'Opening wallet...';
+    if (isConfirmingTransaction) return txPhase === 'approve' ? 'Confirming approval...' : 'Confirming transaction...';
+    if (approvalNeeded) return `Approve ${selectedAsset.symbol}`;
+    return `Buy ARTM3 with ${selectedAsset.symbol}`;
+  }, [
+    approvalNeeded,
+    isConnected,
+    isConfirmingTransaction,
+    isOnSepolia,
+    isOpeningWallet,
+    selectedAsset.symbol,
+    txPhase,
+  ]);
+
+  const primaryDisabled =
+    isSubmittingTransaction ||
+    isSwitchingChain ||
+    (isConnected &&
+      isOnSepolia &&
+      (!saleActive ||
+        salePaused ||
+        claimActive ||
+        parsedPaymentAmount <= 0n ||
+        !meetsMinimum ||
+        !hasEnoughBalance ||
+        !quoteUsesFullAmount));
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    const fetchEthPrice = async () => {
-      try {
-        setPriceLoading(true);
-        setPriceError('');
-
-        const response = await fetch('/api/eth-price', {
-          cache: 'no-store',
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to load ETH price');
-        }
-
-        const data = await response.json();
-
-        if (active) {
-          setEthUsdPrice(data.ethUsd);
-        }
-      } catch {
-        if (active) {
-          setPriceError('Unable to load ETH/USD price');
-        }
-      } finally {
-        if (active) {
-          setPriceLoading(false);
-        }
-      }
-    };
-
-    fetchEthPrice();
-
-    const interval = setInterval(fetchEthPrice, 30000);
-
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!walletNotice) return;
-
-    const timeout = window.setTimeout(() => {
-      setWalletNotice(null);
-    }, 5000);
-
-    return () => window.clearTimeout(timeout);
-  }, [walletNotice]);
-
-  useEffect(() => {
-    if (!sendError) return;
-
-    setTransactionNotice(mapTransactionErrorToNotice(sendError));
-
-    if (!isUserRejectedError(sendError)) {
-      console.error(sendError);
-    }
-  }, [sendError]);
 
   useEffect(() => {
     if (!writeError) return;
@@ -257,76 +405,52 @@ export default function ArtemisPresalePage() {
   }, [receiptError]);
 
   useEffect(() => {
-    if (!transactionNotice) return;
+    if (!transactionNotice && !walletNotice) return undefined;
 
     const timeout = window.setTimeout(() => {
       setTransactionNotice(null);
-    }, 5000);
+      setWalletNotice(null);
+    }, 6000);
 
     return () => window.clearTimeout(timeout);
-  }, [transactionNotice]);
+  }, [transactionNotice, walletNotice]);
 
   useEffect(() => {
-    if (selectedAsset === 'USDC' || selectedAsset === 'USDT') {
-      setPaymentAmount(String(MINIMUM_USD));
-      return;
+    if (!isTransactionConfirmed || !activeTxHash || !txPhase) return;
+
+    if (txPhase === 'approve') {
+      setSuccessMessage(`${selectedAsset.symbol} approval confirmed. You can now buy ARTM3.`);
+      allowanceRead.refetch();
     }
 
-    if (selectedAsset === 'ETH' && ethUsdPrice && ethUsdPrice > 0) {
-      const ethAmount = (MINIMUM_USD / ethUsdPrice).toFixed(6);
-      setPaymentAmount(ethAmount);
+    if (txPhase === 'purchase') {
+      setSuccessMessage(`Purchase confirmed. Your ARTM3 allocation has been refreshed.`);
+      setShowEmailCapture(true);
+      buyerDashboardRead.refetch();
+      saleStatusRead.refetch();
+      currentBatchRead.refetch();
+      allowanceRead.refetch();
+      balanceRead.refetch();
     }
-  }, [selectedAsset, ethUsdPrice]);
 
-  const assetUsdPrice = useMemo(() => {
-    if (selectedAsset === 'ETH') return ethUsdPrice ?? 0;
-    if (selectedAsset === 'USDC') return 1;
-    if (selectedAsset === 'USDT') return 1;
-    return 0;
-  }, [selectedAsset, ethUsdPrice]);
+    if (txPhase === 'claim') {
+      setSuccessMessage('Claim confirmed. Your wallet dashboard has been refreshed.');
+      buyerDashboardRead.refetch();
+      saleStatusRead.refetch();
+    }
 
-  const numericPaymentAmount = useMemo(() => validateAmount(paymentAmount), [paymentAmount]);
-
-  const estimatedUsdValue = useMemo(
-    () => calculateEstimatedUsdValue(paymentAmount, selectedAsset, assetUsdPrice),
-    [paymentAmount, selectedAsset, assetUsdPrice]
-  );
-
-  const estimatedTokens = useMemo(
-    () => calculateEstimatedTokens(estimatedUsdValue),
-    [estimatedUsdValue]
-  );
-
-  const selectedWalletName = connector ? normaliseConnectorName(connector.name) : null;
-  const isOnEthereumMainnet = chain?.id === mainnet.id;
-  const meetsMinimum = estimatedUsdValue >= MINIMUM_USD;
-
-  const isEthPurchase = selectedAsset === 'ETH';
-  const isUsdcPurchase = selectedAsset === 'USDC';
-  const isUsdtPurchase = selectedAsset === 'USDT';
-  const isTokenPurchase = isUsdcPurchase || isUsdtPurchase;
-
-  const selectedTokenAddress = isUsdcPurchase
-    ? USDC_ETHEREUM_ADDRESS
-    : isUsdtPurchase
-      ? USDT_ETHEREUM_ADDRESS
-      : null;
-
-  const selectedTokenDecimals = isTokenPurchase ? 6 : 18;
-
-  const isSubmittingTransaction =
-    isSendingTransaction || isWritingContract || isConfirmingTransaction;
-
-  const canSubmitTransaction =
-    isConnected &&
-    isOnEthereumMainnet &&
-    numericPaymentAmount > 0 &&
-    meetsMinimum &&
-    !isSubmittingTransaction &&
-    !isSwitchingChain &&
-    !!TREASURY_WALLET;
-
-  const etherscanUrl = activeTxHash ? `https://etherscan.io/tx/${activeTxHash}` : null;
+    setTxPhase(null);
+  }, [
+    activeTxHash,
+    allowanceRead,
+    balanceRead,
+    buyerDashboardRead,
+    currentBatchRead,
+    isTransactionConfirmed,
+    saleStatusRead,
+    selectedAsset.symbol,
+    txPhase,
+  ]);
 
   const handleCopyAddress = async () => {
     if (!address || typeof window === 'undefined' || !navigator?.clipboard) return;
@@ -336,12 +460,8 @@ export default function ArtemisPresalePage() {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      // no-op
+      // Clipboard support is optional.
     }
-  };
-
-  const handleSwitchToEthereum = () => {
-    switchChain({ chainId: mainnet.id });
   };
 
   const handleOpenWalletModal = () => {
@@ -368,59 +488,165 @@ export default function ArtemisPresalePage() {
     disconnect();
   };
 
-  const handleLaunchSequence = () => {
+  const refreshReads = () => {
+    saleStatusRead.refetch();
+    presaleCapRead.refetch();
+    minimumPurchaseRead.refetch();
+    batchCountRead.refetch();
+    currentBatchRead.refetch();
+    buyerDashboardRead.refetch();
+    allowanceRead.refetch();
+    balanceRead.refetch();
+    quoteRead.refetch();
+  };
+
+  const handlePrimaryAction = async () => {
+    setActionMessage('');
+    setSuccessMessage('');
+    setTransactionNotice(null);
+
     if (!isConnected) {
-      setActionMessage('Connect your wallet before continuing.');
+      handleOpenWalletModal();
       return;
     }
 
-    if (!isOnEthereumMainnet) {
-      setActionMessage('Switch to Ethereum mainnet before continuing.');
+    if (!isOnSepolia) {
+      switchChain({ chainId: ARTEMIS_CHAIN.id });
       return;
     }
 
-    if (numericPaymentAmount <= 0) {
+    if (!saleActive) {
+      setActionMessage('The presale contract is not active yet.');
+      return;
+    }
+
+    if (salePaused) {
+      setActionMessage('The presale contract is currently paused.');
+      return;
+    }
+
+    if (claimActive) {
+      setActionMessage('Buying is closed because claims are active.');
+      return;
+    }
+
+    if (parsedPaymentAmount <= 0n) {
       setActionMessage('Enter a valid contribution amount.');
       return;
     }
 
     if (!meetsMinimum) {
-      setActionMessage(`Minimum purchase is $${MINIMUM_USD} equivalent.`);
+      setActionMessage(`Minimum purchase is ${formatUsd(minimumPurchaseUsd, 0)}.`);
       return;
     }
 
-    if (!TREASURY_WALLET) {
-      setActionMessage('Add your treasury wallet address before testing transactions.');
+    if (!hasEnoughBalance) {
+      setActionMessage(`Insufficient ${selectedAsset.symbol} balance on Sepolia.`);
+      return;
+    }
+
+    if (!quoteUsesFullAmount) {
+      setActionMessage('This amount exceeds the remaining presale allocation. Use a smaller amount.');
       return;
     }
 
     try {
-      setActionMessage('');
-      setTransactionNotice(null);
+      const isApproval = approvalNeeded;
+      setTxPhase(isApproval ? 'approve' : 'purchase');
 
-      if (isEthPurchase) {
-        sendTransaction({
-          to: TREASURY_WALLET,
-          value: parseEther(paymentAmount),
-          chainId: mainnet.id,
-        });
-        return;
+      const hash = await writeContractAsync(
+        isApproval
+          ? {
+              abi: ERC20_APPROVAL_ABI,
+              address: selectedAsset.address,
+              functionName: 'approve',
+              args: [ARTEMIS_SEPOLIA_CONTRACTS.presale, parsedPaymentAmount],
+              chainId: ARTEMIS_CHAIN.id,
+            }
+          : {
+              abi: ARTEMIS_PRESALE_ABI,
+              address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+              functionName: selectedAsset.buyFunction,
+              args: [parsedPaymentAmount],
+              chainId: ARTEMIS_CHAIN.id,
+            }
+      );
+
+      setActiveTxHash(hash);
+    } catch (error) {
+      setTxPhase(null);
+      setTransactionNotice(mapTransactionErrorToNotice(error));
+
+      if (!isUserRejectedError(error)) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleClaim = async () => {
+    setActionMessage('');
+    setSuccessMessage('');
+    setTransactionNotice(null);
+
+    if (!isConnected) {
+      handleOpenWalletModal();
+      return;
+    }
+
+    if (!isOnSepolia) {
+      switchChain({ chainId: ARTEMIS_CHAIN.id });
+      return;
+    }
+
+    if (!claimActive || buyerClaimable <= 0n) {
+      setActionMessage('There are no ARTM3 tokens claimable for this wallet yet.');
+      return;
+    }
+
+    try {
+      setTxPhase('claim');
+      const hash = await writeContractAsync({
+        abi: ARTEMIS_PRESALE_ABI,
+        address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+        functionName: 'claimTokens',
+        chainId: ARTEMIS_CHAIN.id,
+      });
+
+      setActiveTxHash(hash);
+    } catch (error) {
+      setTxPhase(null);
+      setTransactionNotice(mapTransactionErrorToNotice(error));
+
+      if (!isUserRejectedError(error)) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleEmailSubmit = async (event) => {
+    event.preventDefault();
+    setEmailStatus('');
+
+    try {
+      const response = await fetch('/api/presale-interest', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          walletAddress: address,
+          source: 'presale-success',
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Email signup failed');
       }
 
-      if (isTokenPurchase && selectedTokenAddress) {
-        writeContract({
-          abi: ERC20_TRANSFER_ABI,
-          address: selectedTokenAddress,
-          functionName: 'transfer',
-          args: [TREASURY_WALLET, parseUnits(paymentAmount, selectedTokenDecimals)],
-          chainId: mainnet.id,
-        });
-        return;
-      }
-
-      setActionMessage('Unsupported payment asset.');
+      setEmail('');
+      setEmailStatus('Saved for launch updates.');
     } catch {
-      setActionMessage('Unable to prepare the transaction.');
+      setEmailStatus('Unable to save email right now.');
     }
   };
 
@@ -435,11 +661,11 @@ export default function ArtemisPresalePage() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-6 md:py-10">
+      <div className="relative z-10 mx-auto max-w-5xl px-6 py-6 md:py-10">
         <header className="mb-8 flex items-center justify-between gap-4 px-0 py-2">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
-              <span className="text-xl">🚀</span>
+              <span className="text-xl font-semibold text-cyan-200">A3</span>
             </div>
 
             <div className="leading-tight">
@@ -447,7 +673,7 @@ export default function ArtemisPresalePage() {
                 ARTEMIS
               </div>
               <div className="text-xs tracking-[0.35em] text-blue-300/60">
-                LUNAR MEMECOIN MISSION
+                SEPOLIA PRESALE TEST
               </div>
             </div>
           </div>
@@ -465,297 +691,344 @@ export default function ArtemisPresalePage() {
           aria-labelledby="presale-heading"
           className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_80px_rgba(37,99,235,0.08)] backdrop-blur-xl md:p-8"
         >
-          <div className="mx-auto max-w-2xl text-center">
-            <h1 id="presale-heading" className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
-              Secure your $ARTM3 allocation
-            </h1>
-            <div className="mt-4 text-xl font-medium text-cyan-300 md:text-2xl">
-              Batch 1 — $0.25
-            </div>
-            <p className="mt-2 text-sm text-blue-100/60 md:text-base">
-              Price increases as batches fill
-            </p>
-            <p className="mt-4 text-sm text-blue-100/65 md:text-base">
-              Buy $ARTM3 in the Artemis presale using ETH, USDC, or USDT on the Ethereum network.
-            </p>
-          </div>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <div className="w-full lg:w-[42%]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-medium text-cyan-100">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Ethereum Sepolia
+              </div>
+              <h1
+                id="presale-heading"
+                className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-5xl"
+              >
+                Secure your ARTM3 allocation
+              </h1>
+              <div className="mt-4 text-xl font-medium text-cyan-300 md:text-2xl">
+                Batch {Number(currentBatchId) + 1} of {Number(batchCount || 6n)} - {formatUsd(currentPriceUsd)}
+              </div>
+              <p className="mt-4 text-sm text-blue-100/65 md:text-base">
+                Buy ARTM3 through the deployed Sepolia presale contract using test USDC or test USDT.
+              </p>
 
-          <div className="mx-auto mt-8 max-w-2xl">
-            <Divider />
-          </div>
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <Stat label="Total sold" value={`${formatTokenAmount(totalTokensSold, 0)} ARTM3`} />
+                <Stat label="Remaining" value={`${formatTokenAmount(totalTokensRemaining, 0)} ARTM3`} />
+                <Stat label="Raised" value={formatUsd(totalUsdRaised, 0)} />
+                <Stat
+                  label="Status"
+                  value={salePaused ? 'Paused' : saleActive ? 'Live' : 'Inactive'}
+                />
+              </div>
 
-          <div className="mx-auto mt-8 max-w-2xl">
-            {!isConnected ? (
-              <div className="space-y-4">
-                <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
-                  <Button
-                    className="h-14 w-full rounded-2xl text-base font-semibold shadow-[0_0_30px_rgba(59,130,246,0.28)]"
-                    onClick={handleOpenWalletModal}
-                    disabled={!isMounted}
-                  >
-                    <Wallet className="mr-2 h-4 w-4" />
-                    Connect Wallet
-                  </Button>
-
-                  <div className="mt-4 text-center text-sm text-blue-100/60">
-                    Choose MetaMask or WalletConnect in the wallet modal.
-                  </div>
-
-                  {walletNotice && (
-                    <div
-                      className={`mt-4 flex min-h-[56px] items-center rounded-2xl p-4 text-sm ${
-                        walletNotice.type === 'warning'
-                          ? 'border border-amber-300/20 bg-amber-400/10 text-amber-100/80'
-                          : 'border border-red-300/20 bg-red-400/10 text-red-100/80'
-                      }`}
-                    >
-                      <span className="line-clamp-2">{walletNotice.message}</span>
-                    </div>
-                  )}
+              <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-blue-100/60">Total presale progress</span>
+                  <span className="font-medium text-white">{totalSoldPercent.toFixed(2)}% sold</span>
+                </div>
+                <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-300"
+                    style={{ width: `${Math.min(totalSoldPercent, 100)}%` }}
+                  />
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-4">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-200" />
-                  <div className="w-full">
-                    <div className="font-medium text-emerald-100">
-                      {selectedWalletName || 'Wallet'} connected
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <div className="rounded-full border border-emerald-300/20 bg-black/20 px-3 py-1 text-xs text-emerald-100/80">
-                        {formatAddress(address)}
-                      </div>
 
-                      {chain?.name && (
-                        <div className="rounded-full border border-emerald-300/20 bg-black/20 px-3 py-1 text-xs text-emerald-100/80">
-                          {chain.name}
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={handleCopyAddress}
-                        className="inline-flex items-center gap-1 rounded-full border border-emerald-300/20 bg-black/20 px-3 py-1 text-xs text-emerald-100/80 hover:bg-black/30"
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                        {copied ? 'Copied' : 'Copy'}
-                      </button>
-                    </div>
-                  </div>
+              <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-blue-100/60">Current batch progress</span>
+                  <span className="font-medium text-white">{batchSoldPercent.toFixed(2)}% sold</span>
                 </div>
+                <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-300"
+                    style={{ width: `${Math.min(batchSoldPercent, 100)}%` }}
+                  />
+                </div>
+                <div className="mt-2 text-xs text-blue-100/45">
+                  {formatTokenAmount(batchTokensRemaining, 0)} ARTM3 remaining in this batch
+                </div>
+              </div>
+            </div>
 
-                {!isOnEthereumMainnet && (
-                  <div className="rounded-3xl border border-amber-300/20 bg-amber-400/10 p-4">
-                    <div className="font-medium text-amber-100">Ethereum mainnet required</div>
-                    <div className="mt-1 text-sm text-amber-100/70">
-                      Switch your wallet to Ethereum mainnet before continuing.
-                    </div>
+            <div className="w-full lg:flex-1">
+              <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+                {!isConnected ? (
+                  <div>
                     <Button
-                      variant="outline"
-                      className="mt-4 h-11 rounded-2xl font-medium"
-                      onClick={handleSwitchToEthereum}
-                      disabled={isSwitchingChain}
-                    >
-                      {isSwitchingChain ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Switching...
-                        </>
-                      ) : (
-                        'Switch to Ethereum'
-                      )}
-                    </Button>
-                  </div>
-                )}
-
-                <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {acceptedAssets.map((asset) => {
-                      const active = selectedAsset === asset.symbol;
-                      return (
-                        <button
-                          type="button"
-                          key={asset.symbol}
-                          onClick={() => setSelectedAsset(asset.symbol)}
-                          className={`rounded-2xl border px-4 py-4 text-left transition-colors ${
-                            active
-                              ? 'border-cyan-300/30 bg-cyan-300/10'
-                              : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
-                          }`}
-                          aria-pressed={active}
-                        >
-                          <div className="font-semibold text-white">{asset.symbol}</div>
-                          <div className="mt-1 text-sm text-blue-100/55">{asset.network}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-4">
-                    <NumberInput
-                      label="Amount"
-                      value={paymentAmount}
-                      onChange={setPaymentAmount}
-                      suffix={selectedAsset}
-                    />
-                  </div>
-
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    <div className="text-[11px] uppercase tracking-[0.24em] text-blue-200/45">
-                      You receive
-                    </div>
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <div className="text-3xl font-semibold text-white">{estimatedTokens} ARTM3</div>
-                      <div className="text-sm text-blue-100/55">at $0.25</div>
-                    </div>
-                    <div className="mt-2 text-sm text-blue-100/55">
-                      {selectedAsset === 'ETH' ? (
-                        priceLoading ? (
-                          'Loading ETH/USD price...'
-                        ) : priceError ? (
-                          priceError
-                        ) : (
-                          <>1 ETH = ${ethUsdPrice?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</>
-                        )
-                      ) : (
-                        <>1 {selectedAsset} = $1.00</>
-                      )}
-                    </div>
-                    <div className="mt-1 text-sm text-blue-100/55">
-                      Estimated contribution: $
-                      {estimatedUsdValue.toLocaleString(undefined, {
-                        maximumFractionDigits: 2,
-                      })}
-                    </div>
-                    <div className="mt-1 text-sm text-blue-100/45">
-                      Destination: {TREASURY_WALLET ? formatAddress(TREASURY_WALLET) : 'Not configured'}
-                    </div>
-                  </div>
-
-                  {actionMessage && (
-                    <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm text-amber-100/80">
-                      {actionMessage}
-                    </div>
-                  )}
-
-                  {transactionNotice && (
-                    <div
-                      className={`mt-4 flex min-h-[56px] items-center rounded-2xl p-4 text-sm ${
-                        transactionNotice.type === 'warning'
-                          ? 'border border-amber-300/20 bg-amber-400/10 text-amber-100/80'
-                          : 'border border-red-300/20 bg-red-400/10 text-red-100/80'
-                      }`}
-                    >
-                      <span className="line-clamp-2">{transactionNotice.message}</span>
-                    </div>
-                  )}
-
-                  {activeTxHash && (
-                    <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
-                      <div className="text-sm text-cyan-100/90">Transaction submitted</div>
-                      <div className="mt-2 break-all text-xs text-cyan-100/70">{activeTxHash}</div>
-                      {etherscanUrl && (
-                        <a
-                          href={etherscanUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-3 inline-flex items-center gap-1 text-sm text-cyan-100 hover:underline"
-                        >
-                          View on Etherscan
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {isTransactionConfirmed && (
-                    <div className="mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 p-4 text-sm text-emerald-100/85">
-                      Payment confirmed on Ethereum mainnet.
-                    </div>
-                  )}
-
-                  <Button
-                    className="mt-5 h-14 w-full rounded-2xl text-base font-semibold shadow-[0_0_30px_rgba(59,130,246,0.28)]"
-                    onClick={handleLaunchSequence}
-                    disabled={!canSubmitTransaction}
-                  >
-                    {isSendingTransaction ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Opening wallet...
-                      </>
-                    ) : isWritingContract ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Opening wallet...
-                      </>
-                    ) : isConfirmingTransaction ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Confirming transaction...
-                      </>
-                    ) : (
-                      'Buy $ARTM3'
-                    )}
-                  </Button>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-2xl font-medium"
-                      onClick={handleManageWallet}
+                      className="h-14 w-full rounded-2xl text-base font-semibold shadow-[0_0_30px_rgba(59,130,246,0.28)]"
+                      onClick={handleOpenWalletModal}
+                      disabled={!isMounted}
                     >
                       <Wallet className="mr-2 h-4 w-4" />
-                      Manage Wallet
+                      Connect Wallet
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-2xl font-medium"
-                      onClick={disconnect}
-                    >
-                      Disconnect
-                    </Button>
+                    <div className="mt-4 text-center text-sm text-blue-100/60">
+                      Choose MetaMask, WalletConnect, or Coinbase Wallet.
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3 rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-4">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-200" />
+                      <div className="w-full">
+                        <div className="font-medium text-emerald-100">
+                          {selectedWalletName || 'Wallet'} connected
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <div className="rounded-full border border-emerald-300/20 bg-black/20 px-3 py-1 text-xs text-emerald-100/80">
+                            {formatAddress(address)}
+                          </div>
+                          <div className="rounded-full border border-emerald-300/20 bg-black/20 px-3 py-1 text-xs text-emerald-100/80">
+                            {chain?.name || 'Unknown network'}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCopyAddress}
+                            className="inline-flex items-center gap-1 rounded-full border border-emerald-300/20 bg-black/20 px-3 py-1 text-xs text-emerald-100/80 hover:bg-black/30"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            {copied ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {!isOnSepolia && (
+                      <div className="rounded-3xl border border-amber-300/20 bg-amber-400/10 p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-100" />
+                          <div>
+                            <div className="font-medium text-amber-100">Sepolia required</div>
+                            <div className="mt-1 text-sm text-amber-100/70">
+                              Switch your wallet to Sepolia before testing the presale.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {acceptedAssets.map((asset) => {
+                        const active = selectedAsset.symbol === asset.symbol;
+                        return (
+                          <button
+                            type="button"
+                            key={asset.symbol}
+                            onClick={() => {
+                              setSelectedAssetSymbol(asset.symbol);
+                              setActionMessage('');
+                              setSuccessMessage('');
+                            }}
+                            className={`rounded-2xl border px-4 py-4 text-left transition-colors ${
+                              active
+                                ? 'border-cyan-300/30 bg-cyan-300/10'
+                                : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
+                            }`}
+                            aria-pressed={active}
+                          >
+                            <div className="font-semibold text-white">{asset.label}</div>
+                            <div className="mt-1 text-sm text-blue-100/55">Sepolia</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <NumberInput
+                      label="Contribution"
+                      value={paymentAmount}
+                      onChange={setPaymentAmount}
+                      suffix={selectedAsset.symbol}
+                      minAmount={minimumPurchaseUsd}
+                    />
+
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <div className="text-[11px] uppercase tracking-[0.24em] text-blue-200/45">
+                        You receive
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <div className="text-3xl font-semibold text-white">
+                          {formatTokenAmount(quotedTokens)} ARTM3
+                        </div>
+                        <div className="text-sm text-blue-100/55">
+                          at {formatUsd(currentPriceUsd)}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-sm text-blue-100/55">
+                        Balance: {formatStableAmount(selectedBalance)} {selectedAsset.symbol}
+                      </div>
+                      <div className="mt-1 text-sm text-blue-100/55">
+                        Allowance: {formatStableAmount(allowance)} {selectedAsset.symbol}
+                      </div>
+                      {parsedPaymentAmount > 0n && quoteRead.data && (
+                        <div className="mt-1 text-sm text-blue-100/45">
+                          Quote batches: {Number(quoteStartBatch) + 1} to {Number(quoteEndBatch) + 1}
+                        </div>
+                      )}
+                    </div>
+
+                    {actionMessage && (
+                      <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm text-amber-100/80">
+                        {actionMessage}
+                      </div>
+                    )}
+
+                    {walletNotice && (
+                      <div className="rounded-2xl border border-red-300/20 bg-red-400/10 p-4 text-sm text-red-100/80">
+                        {walletNotice.message}
+                      </div>
+                    )}
+
+                    {transactionNotice && (
+                      <div
+                        className={`rounded-2xl p-4 text-sm ${
+                          transactionNotice.type === 'warning'
+                            ? 'border border-amber-300/20 bg-amber-400/10 text-amber-100/80'
+                            : 'border border-red-300/20 bg-red-400/10 text-red-100/80'
+                        }`}
+                      >
+                        {transactionNotice.message}
+                      </div>
+                    )}
+
+                    {successMessage && (
+                      <div className="rounded-2xl border border-emerald-300/20 bg-emerald-400/10 p-4 text-sm text-emerald-100/85">
+                        {successMessage}
+                      </div>
+                    )}
+
+                    {activeTxHash && (
+                      <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+                        <div className="text-sm text-cyan-100/90">Latest transaction</div>
+                        <div className="mt-2 break-all text-xs text-cyan-100/70">{activeTxHash}</div>
+                        {explorerUrl && (
+                          <a
+                            href={explorerUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-3 inline-flex items-center gap-1 text-sm text-cyan-100 hover:underline"
+                          >
+                            View on Sepolia Etherscan
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+
+                    <Button
+                      className="h-14 w-full rounded-2xl text-base font-semibold shadow-[0_0_30px_rgba(59,130,246,0.28)]"
+                      onClick={handlePrimaryAction}
+                      disabled={primaryDisabled}
+                    >
+                      {isOpeningWallet || isConfirmingTransaction || isSwitchingChain ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {isSwitchingChain ? 'Switching network...' : primaryButtonLabel}
+                    </Button>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        variant="outline"
+                        className="h-12 rounded-2xl font-medium"
+                        onClick={handleManageWallet}
+                      >
+                        <Wallet className="mr-2 h-4 w-4" />
+                        Manage
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-12 rounded-2xl font-medium"
+                        onClick={refreshReads}
+                      >
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Refresh
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
-          <div className="mx-auto mt-8 max-w-2xl">
+          <div className="my-8">
             <Divider />
           </div>
 
-          <section aria-labelledby="presale-trust-heading" className="mx-auto mt-8 max-w-2xl">
-            <h2 id="presale-trust-heading" className="sr-only">
-              Presale trust indicators
-            </h2>
-
-            <div className="mb-4 text-center text-sm text-blue-100/55">
-              Built on Ethereum. Fixed supply. Buy using ETH, USDC or USDT.
+          <section aria-labelledby="allocation-heading" className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
+            <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+              <h2 id="allocation-heading" className="text-xl font-semibold text-white">
+                My Artemis Allocation
+              </h2>
+              <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                <Stat label="Purchased" value={`${formatTokenAmount(buyerTokensAllocated)} ARTM3`} />
+                <Stat label="Contributed" value={formatUsd(buyerUsdSpent)} />
+                <Stat label="Claimed" value={`${formatTokenAmount(buyerTokensClaimed)} ARTM3`} />
+                <Stat label="Purchases" value={String(buyerPurchaseCount)} />
+              </div>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-blue-200/45">
+                      Claimable
+                    </div>
+                    <div className="mt-2 text-2xl font-semibold text-white">
+                      {formatTokenAmount(buyerClaimable)} ARTM3
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-2xl px-5 font-medium"
+                    onClick={handleClaim}
+                    disabled={!claimActive || buyerClaimable <= 0n || isSubmittingTransaction}
+                  >
+                    {txPhase === 'claim' && isConfirmingTransaction ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
+                    Claim ARTM3
+                  </Button>
+                </div>
+              </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-center">
-                <div className="flex items-center justify-center gap-2 text-sm font-medium text-white">
-                  <Lock className="h-4 w-4 text-cyan-200" />
-                  Liquidity locked
+            <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+              <h2 className="text-xl font-semibold text-white">Contract Details</h2>
+              <div className="mt-4 space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-blue-100/55">Presale</span>
+                  <span className="font-medium text-white">{formatAddress(ARTEMIS_SEPOLIA_CONTRACTS.presale)}</span>
                 </div>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-center">
-                <div className="flex items-center justify-center gap-2 text-sm font-medium text-white">
-                  <TrendingDown className="h-4 w-4 text-cyan-200" />
-                  Fixed supply
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-blue-100/55">Token</span>
+                  <span className="font-medium text-white">{formatAddress(ARTEMIS_SEPOLIA_CONTRACTS.token)}</span>
                 </div>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-center">
-                <div className="flex items-center justify-center gap-2 text-sm font-medium text-white">
-                  <ShieldCheck className="h-4 w-4 text-cyan-200" />
-                  Team vested
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-blue-100/55">Claims</span>
+                  <span className="font-medium text-white">{claimActive ? 'Active' : 'Inactive'}</span>
                 </div>
               </div>
             </div>
           </section>
+
+          {showEmailCapture && (
+            <section className="mt-5 rounded-[1.75rem] border border-cyan-300/20 bg-cyan-300/10 p-5">
+              <h2 className="text-xl font-semibold text-white">Stay close to launch</h2>
+              <form onSubmit={handleEmailSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Email for claim reminders"
+                  className="h-12 min-w-0 flex-1 rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none placeholder:text-blue-100/35"
+                />
+                <Button type="submit" className="h-12 rounded-2xl px-5 font-medium">
+                  Save Email
+                </Button>
+              </form>
+              {emailStatus && (
+                <div className="mt-3 text-sm text-cyan-100/80">{emailStatus}</div>
+              )}
+            </section>
+          )}
         </section>
       </div>
     </main>
@@ -766,10 +1039,9 @@ export function __testables() {
   return {
     formatAddress,
     normaliseConnectorName,
-    validateAmount,
-    calculateEstimatedUsdValue,
-    calculateEstimatedTokens,
-    MINIMUM_USD,
-    CURRENT_BATCH_PRICE,
+    safeParseStableAmount,
+    formatTokenAmount,
+    formatStableAmount,
+    percentage,
   };
 }

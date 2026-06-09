@@ -27,13 +27,18 @@ export default function CountdownCard() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const mountTimeout = window.setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
 
     const interval = setInterval(() => {
       setTimeRemaining(getTimeRemaining(PRESALE_END_DATE));
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(mountTimeout);
+      clearInterval(interval);
+    };
   }, []);
 
   const countdownBlocks = useMemo(
