@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   useAccount,
+  useBalance,
   useDisconnect,
   useReadContract,
   useSwitchChain,
@@ -45,8 +46,18 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const acceptedAssets = [
   {
+    symbol: 'ETH',
+    label: 'ETH',
+    decimals: 18,
+    isNative: true,
+    buyFunction: 'buyWithETH',
+    quoteFunction: 'quoteForETH',
+  },
+  {
     symbol: 'USDC',
     label: 'USDC',
+    decimals: STABLE_DECIMALS,
+    isNative: false,
     address: ARTEMIS_SEPOLIA_CONTRACTS.usdc,
     buyFunction: 'buyWithUSDC',
     quoteFunction: 'quoteForUSDC',
@@ -54,6 +65,8 @@ const acceptedAssets = [
   {
     symbol: 'USDT',
     label: 'USDT',
+    decimals: STABLE_DECIMALS,
+    isNative: false,
     address: ARTEMIS_SEPOLIA_CONTRACTS.usdt,
     buyFunction: 'buyWithUSDT',
     quoteFunction: 'quoteForUSDT',
@@ -101,15 +114,17 @@ function normaliseConnectorName(name = '') {
   return name;
 }
 
-function safeParseStableAmount(value) {
+function safeParsePaymentAmount(value, decimals) {
   const normalized = String(value || '').trim().replace(',', '.');
 
-  if (!normalized || !/^\d+(\.\d{0,6})?$/.test(normalized)) {
+  const pattern = new RegExp(`^\\d+(\\.\\d{0,${decimals}})?$`);
+
+  if (!normalized || !pattern.test(normalized)) {
     return 0n;
   }
 
   try {
-    return parseUnits(normalized, STABLE_DECIMALS);
+    return parseUnits(normalized, decimals);
   } catch {
     return 0n;
   }
@@ -122,6 +137,11 @@ function formatTokenAmount(value, maximumFractionDigits = 2) {
 
 function formatStableAmount(value, maximumFractionDigits = 2) {
   const amount = Number(formatUnits(value || 0n, STABLE_DECIMALS));
+  return amount.toLocaleString(undefined, { maximumFractionDigits });
+}
+
+function formatPaymentAmount(value, asset, maximumFractionDigits = 6) {
+  const amount = Number(formatUnits(value || 0n, asset.decimals));
   return amount.toLocaleString(undefined, { maximumFractionDigits });
 }
 
@@ -181,7 +201,7 @@ function Stat({ label, value }) {
 }
 
 export default function ArtemisPresalePage() {
-  const [selectedAssetSymbol, setSelectedAssetSymbol] = useState('USDC');
+  const [selectedAssetSymbol, setSelectedAssetSymbol] = useState('ETH');
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -215,8 +235,8 @@ export default function ArtemisPresalePage() {
   );
 
   const parsedPaymentAmount = useMemo(
-    () => safeParseStableAmount(paymentAmount),
-    [paymentAmount]
+    () => safeParsePaymentAmount(paymentAmount, selectedAsset.decimals),
+    [paymentAmount, selectedAsset.decimals]
   );
 
   const saleStatusRead = useReadContract({
@@ -286,24 +306,33 @@ export default function ArtemisPresalePage() {
 
   const allowanceRead = useReadContract({
     abi: ERC20_APPROVAL_ABI,
-    address: selectedAsset.address,
+    address: selectedAsset.address || ARTEMIS_SEPOLIA_CONTRACTS.usdt,
     functionName: 'allowance',
     args: [address || ZERO_ADDRESS, ARTEMIS_SEPOLIA_CONTRACTS.presale],
     chainId: ARTEMIS_CHAIN.id,
     query: {
-      enabled: Boolean(isConnected && address),
+      enabled: Boolean(isConnected && address && !selectedAsset.isNative),
       refetchInterval: 15000,
     },
   });
 
   const balanceRead = useReadContract({
     abi: ERC20_APPROVAL_ABI,
-    address: selectedAsset.address,
+    address: selectedAsset.address || ARTEMIS_SEPOLIA_CONTRACTS.usdt,
     functionName: 'balanceOf',
     args: [address || ZERO_ADDRESS],
     chainId: ARTEMIS_CHAIN.id,
     query: {
-      enabled: Boolean(isConnected && address),
+      enabled: Boolean(isConnected && address && !selectedAsset.isNative),
+      refetchInterval: 15000,
+    },
+  });
+
+  const nativeBalanceRead = useBalance({
+    address,
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: Boolean(isConnected && address && selectedAsset.isNative),
       refetchInterval: 15000,
     },
   });
@@ -319,6 +348,17 @@ export default function ArtemisPresalePage() {
     },
   });
 
+  const ethUsdValueRead = useReadContract({
+    abi: ARTEMIS_PRESALE_ABI,
+    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    functionName: 'quoteEthUsdValue',
+    args: [parsedPaymentAmount],
+    chainId: ARTEMIS_CHAIN.id,
+    query: {
+      enabled: Boolean(selectedAsset.isNative && parsedPaymentAmount > 0n),
+    },
+  });
+
   const {
     isLoading: isConfirmingTransaction,
     isSuccess: isTransactionConfirmed,
@@ -330,17 +370,28 @@ export default function ArtemisPresalePage() {
 
   const selectedWalletName = connector ? normaliseConnectorName(connector.name) : null;
   const isOnSepolia = chain?.id === ARTEMIS_CHAIN.id;
-  const allowance = allowanceRead.data || 0n;
-  const selectedBalance = balanceRead.data || 0n;
-  const approvalNeeded = parsedPaymentAmount > 0n && allowance < parsedPaymentAmount;
-  const meetsMinimum =
-    parsedPaymentAmount > 0n && (!minimumPurchaseUsd || parsedPaymentAmount >= minimumPurchaseUsd);
+  const allowance = selectedAsset.isNative ? parsedPaymentAmount : allowanceRead.data || 0n;
+  const selectedBalance = selectedAsset.isNative
+    ? nativeBalanceRead.data?.value || 0n
+    : balanceRead.data || 0n;
+  const approvalNeeded =
+    !selectedAsset.isNative && parsedPaymentAmount > 0n && allowance < parsedPaymentAmount;
   const hasEnoughBalance = selectedBalance >= parsedPaymentAmount;
   const quoteUsdUsed = structValue(quoteRead.data, 0, 'usdUsed', 0n);
   const quotedTokens = structValue(quoteRead.data, 1, 'tokensAllocated', 0n);
   const quoteStartBatch = structValue(quoteRead.data, 2, 'startBatchId', currentBatchId);
   const quoteEndBatch = structValue(quoteRead.data, 3, 'endBatchId', currentBatchId);
-  const quoteUsesFullAmount = parsedPaymentAmount === 0n || quoteUsdUsed === parsedPaymentAmount;
+  const hasPaymentUsdValue = !selectedAsset.isNative || ethUsdValueRead.data !== undefined;
+  const paymentUsdValue = selectedAsset.isNative
+    ? ethUsdValueRead.data || 0n
+    : parsedPaymentAmount;
+  const meetsMinimum =
+    parsedPaymentAmount > 0n &&
+    hasPaymentUsdValue &&
+    (!minimumPurchaseUsd || paymentUsdValue >= minimumPurchaseUsd);
+  const quoteUsesFullAmount =
+    parsedPaymentAmount === 0n ||
+    quoteUsdUsed === paymentUsdValue;
 
   const batchTokenCap = tupleValue(currentBatchRead.data, 0, 0n);
   const batchTokensSold = tupleValue(currentBatchRead.data, 1, 0n);
@@ -402,14 +453,35 @@ export default function ArtemisPresalePage() {
       reasons.push('Enter a contribution amount.');
     }
 
-    if (parsedPaymentAmount > 0n && !meetsMinimum) {
+    if (
+      parsedPaymentAmount > 0n &&
+      selectedAsset.isNative &&
+      !hasPaymentUsdValue &&
+      !ethUsdValueRead.error
+    ) {
+      reasons.push('Checking the ETH/USD price.');
+    }
+
+    if (parsedPaymentAmount > 0n && quoteRead.error) {
+      reasons.push('The presale quote is unavailable. Refresh and try again.');
+    }
+
+    if (parsedPaymentAmount > 0n && selectedAsset.isNative && ethUsdValueRead.error) {
+      reasons.push('The ETH/USD price feed is unavailable. Refresh and try again.');
+    }
+
+    if (parsedPaymentAmount > 0n && hasPaymentUsdValue && !meetsMinimum) {
       reasons.push(`Minimum purchase is ${formatUsd(minimumPurchaseUsd, 0)}.`);
     }
 
     if (parsedPaymentAmount > 0n && !hasEnoughBalance) {
       reasons.push(
-        `Your ${selectedAsset.symbol} balance is ${formatStableAmount(selectedBalance)}; enter a smaller amount.`
+        `Your ${selectedAsset.symbol} balance is ${formatPaymentAmount(selectedBalance, selectedAsset)}; enter a smaller amount.`
       );
+    }
+
+    if (parsedPaymentAmount > 0n && !quoteRead.data && !quoteRead.error) {
+      reasons.push('Preparing the presale quote.');
     }
 
     if (parsedPaymentAmount > 0n && quoteRead.data && !quoteUsesFullAmount) {
@@ -419,17 +491,20 @@ export default function ArtemisPresalePage() {
     return reasons;
   }, [
     claimActive,
+    ethUsdValueRead.error,
     hasEnoughBalance,
+    hasPaymentUsdValue,
     isConnected,
     isOnSepolia,
     meetsMinimum,
     minimumPurchaseUsd,
     parsedPaymentAmount,
     quoteRead.data,
+    quoteRead.error,
     quoteUsesFullAmount,
     saleActive,
     salePaused,
-    selectedAsset.symbol,
+    selectedAsset,
     selectedBalance,
   ]);
 
@@ -490,6 +565,8 @@ export default function ArtemisPresalePage() {
       currentBatchRead.refetch();
       allowanceRead.refetch();
       balanceRead.refetch();
+      nativeBalanceRead.refetch();
+      ethUsdValueRead.refetch();
     }
 
     if (txPhase === 'claim') {
@@ -505,7 +582,9 @@ export default function ArtemisPresalePage() {
     balanceRead,
     buyerDashboardRead,
     currentBatchRead,
+    ethUsdValueRead,
     isTransactionConfirmed,
+    nativeBalanceRead,
     saleStatusRead,
     selectedAsset.symbol,
     txPhase,
@@ -556,7 +635,9 @@ export default function ArtemisPresalePage() {
     buyerDashboardRead.refetch();
     allowanceRead.refetch();
     balanceRead.refetch();
+    nativeBalanceRead.refetch();
     quoteRead.refetch();
+    ethUsdValueRead.refetch();
   };
 
   const handlePrimaryAction = async () => {
@@ -594,6 +675,11 @@ export default function ArtemisPresalePage() {
       return;
     }
 
+    if (!hasPaymentUsdValue) {
+      setActionMessage('Checking the ETH/USD price. Try again in a moment.');
+      return;
+    }
+
     if (!meetsMinimum) {
       setActionMessage(`Minimum purchase is ${formatUsd(minimumPurchaseUsd, 0)}.`);
       return;
@@ -601,6 +687,11 @@ export default function ArtemisPresalePage() {
 
     if (!hasEnoughBalance) {
       setActionMessage(`Insufficient ${selectedAsset.symbol} balance on Sepolia.`);
+      return;
+    }
+
+    if (!quoteRead.data) {
+      setActionMessage('Preparing the presale quote. Try again in a moment.');
       return;
     }
 
@@ -622,6 +713,14 @@ export default function ArtemisPresalePage() {
               args: [ARTEMIS_SEPOLIA_CONTRACTS.presale, parsedPaymentAmount],
               chainId: ARTEMIS_CHAIN.id,
             }
+          : selectedAsset.isNative
+            ? {
+                abi: ARTEMIS_PRESALE_ABI,
+                address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+                functionName: selectedAsset.buyFunction,
+                value: parsedPaymentAmount,
+                chainId: ARTEMIS_CHAIN.id,
+              }
           : {
               abi: ARTEMIS_PRESALE_ABI,
               address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
@@ -778,7 +877,7 @@ export default function ArtemisPresalePage() {
                 Batch {Number(currentBatchId) + 1} of {Number(batchCount || 6n)} - {formatUsd(currentPriceUsd)}
               </div>
               <p className="mt-4 text-sm text-blue-100/65 md:text-base">
-                Buy ARTM3 through the deployed Sepolia presale contract using test USDC or test USDT.
+                Buy ARTM3 through the deployed Sepolia presale contract using ETH, test USDC, or test USDT.
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
@@ -878,7 +977,7 @@ export default function ArtemisPresalePage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {acceptedAssets.map((asset) => {
                         const active = selectedAsset.symbol === asset.symbol;
                         return (
@@ -925,11 +1024,13 @@ export default function ArtemisPresalePage() {
                         </div>
                       </div>
                       <div className="mt-2 text-sm text-blue-100/55">
-                        Balance: {formatStableAmount(selectedBalance)} {selectedAsset.symbol}
+                        Balance: {formatPaymentAmount(selectedBalance, selectedAsset)} {selectedAsset.symbol}
                       </div>
-                      <div className="mt-1 text-sm text-blue-100/55">
-                        Allowance: {formatStableAmount(allowance)} {selectedAsset.symbol}
-                      </div>
+                      {!selectedAsset.isNative && (
+                        <div className="mt-1 text-sm text-blue-100/55">
+                          Allowance: {formatPaymentAmount(allowance, selectedAsset)} {selectedAsset.symbol}
+                        </div>
+                      )}
                       {parsedPaymentAmount > 0n && quoteRead.data && (
                         <div className="mt-1 text-sm text-blue-100/45">
                           Quote batches: {Number(quoteStartBatch) + 1} to {Number(quoteEndBatch) + 1}
@@ -1199,9 +1300,10 @@ export function __testables() {
   return {
     formatAddress,
     normaliseConnectorName,
-    safeParseStableAmount,
+    safeParsePaymentAmount,
     formatTokenAmount,
     formatStableAmount,
+    formatPaymentAmount,
     percentage,
   };
 }

@@ -8,6 +8,7 @@
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:v2:sepolia": "hardhat run scripts/deploy-v2.ts --network sepolia",
     "deploy:mainnet": "hardhat run scripts/deploy.ts --network mainnet"
   },
   "devDependencies": {
