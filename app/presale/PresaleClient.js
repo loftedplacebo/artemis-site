@@ -132,6 +132,11 @@ function tupleValue(data, index, fallback) {
   return data[index] ?? fallback;
 }
 
+function structValue(data, index, key, fallback) {
+  if (!data) return fallback;
+  return data[key] ?? data[index] ?? fallback;
+}
+
 function percentage(numerator, denominator) {
   if (!denominator || denominator === 0n) return 0;
   return Number((numerator * 10000n) / denominator) / 100;
@@ -326,10 +331,10 @@ export default function ArtemisPresalePage() {
   const meetsMinimum =
     parsedPaymentAmount > 0n && (!minimumPurchaseUsd || parsedPaymentAmount >= minimumPurchaseUsd);
   const hasEnoughBalance = selectedBalance >= parsedPaymentAmount;
-  const quoteUsdUsed = tupleValue(quoteRead.data, 0, 0n);
-  const quotedTokens = tupleValue(quoteRead.data, 1, 0n);
-  const quoteStartBatch = tupleValue(quoteRead.data, 2, currentBatchId);
-  const quoteEndBatch = tupleValue(quoteRead.data, 3, currentBatchId);
+  const quoteUsdUsed = structValue(quoteRead.data, 0, 'usdUsed', 0n);
+  const quotedTokens = structValue(quoteRead.data, 1, 'tokensAllocated', 0n);
+  const quoteStartBatch = structValue(quoteRead.data, 2, 'startBatchId', currentBatchId);
+  const quoteEndBatch = structValue(quoteRead.data, 3, 'endBatchId', currentBatchId);
   const quoteUsesFullAmount = parsedPaymentAmount === 0n || quoteUsdUsed === parsedPaymentAmount;
 
   const batchTokenCap = tupleValue(currentBatchRead.data, 0, 0n);
@@ -355,10 +360,12 @@ export default function ArtemisPresalePage() {
     if (!isOnSepolia) return 'Switch to Sepolia';
     if (isOpeningWallet) return 'Opening wallet...';
     if (isConfirmingTransaction) return txPhase === 'approve' ? 'Confirming approval...' : 'Confirming transaction...';
+    if (claimActive) return 'Buying closed - claims active';
     if (approvalNeeded) return `Approve ${selectedAsset.symbol}`;
     return `Buy ARTM3 with ${selectedAsset.symbol}`;
   }, [
     approvalNeeded,
+    claimActive,
     isConnected,
     isConfirmingTransaction,
     isOnSepolia,
@@ -367,18 +374,62 @@ export default function ArtemisPresalePage() {
     txPhase,
   ]);
 
+  const primaryBlockReasons = useMemo(() => {
+    if (!isConnected || !isOnSepolia) return [];
+
+    const reasons = [];
+
+    if (!saleActive) {
+      reasons.push('The presale contract is not active.');
+    }
+
+    if (salePaused) {
+      reasons.push('The presale contract is paused.');
+    }
+
+    if (claimActive) {
+      reasons.push('Buying is closed because claims are active on this Sepolia contract.');
+    }
+
+    if (parsedPaymentAmount <= 0n) {
+      reasons.push('Enter a contribution amount.');
+    }
+
+    if (parsedPaymentAmount > 0n && !meetsMinimum) {
+      reasons.push(`Minimum purchase is ${formatUsd(minimumPurchaseUsd, 0)}.`);
+    }
+
+    if (parsedPaymentAmount > 0n && !hasEnoughBalance) {
+      reasons.push(
+        `Your ${selectedAsset.symbol} balance is ${formatStableAmount(selectedBalance)}; enter a smaller amount.`
+      );
+    }
+
+    if (parsedPaymentAmount > 0n && quoteRead.data && !quoteUsesFullAmount) {
+      reasons.push('This amount cannot be fully allocated by the presale contract.');
+    }
+
+    return reasons;
+  }, [
+    claimActive,
+    hasEnoughBalance,
+    isConnected,
+    isOnSepolia,
+    meetsMinimum,
+    minimumPurchaseUsd,
+    parsedPaymentAmount,
+    quoteRead.data,
+    quoteUsesFullAmount,
+    saleActive,
+    salePaused,
+    selectedAsset.symbol,
+    selectedBalance,
+  ]);
+
   const primaryDisabled =
     isSubmittingTransaction ||
     isSwitchingChain ||
-    (isConnected &&
-      isOnSepolia &&
-      (!saleActive ||
-        salePaused ||
-        claimActive ||
-        parsedPaymentAmount <= 0n ||
-        !meetsMinimum ||
-        !hasEnoughBalance ||
-        !quoteUsesFullAmount));
+    primaryBlockReasons.length > 0;
 
   useEffect(() => {
     setIsMounted(true);
@@ -716,7 +767,7 @@ export default function ArtemisPresalePage() {
                 <Stat label="Raised" value={formatUsd(totalUsdRaised, 0)} />
                 <Stat
                   label="Status"
-                  value={salePaused ? 'Paused' : saleActive ? 'Live' : 'Inactive'}
+                  value={claimActive ? 'Claims active' : salePaused ? 'Paused' : saleActive ? 'Live' : 'Inactive'}
                 />
               </div>
 
@@ -865,6 +916,17 @@ export default function ArtemisPresalePage() {
                         </div>
                       )}
                     </div>
+
+                    {primaryBlockReasons.length > 0 && (
+                      <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm text-amber-100/80">
+                        <div className="font-medium text-amber-100">Before continuing</div>
+                        <ul className="mt-2 space-y-1">
+                          {primaryBlockReasons.map((reason) => (
+                            <li key={reason}>{reason}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {actionMessage && (
                       <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-4 text-sm text-amber-100/80">
