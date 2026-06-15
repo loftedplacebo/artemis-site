@@ -18,9 +18,11 @@ import {
   Copy,
   ExternalLink,
   Loader2,
+  Mail,
   RefreshCw,
   ShieldCheck,
   Wallet,
+  X,
 } from 'lucide-react';
 import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
 
@@ -190,7 +192,10 @@ export default function ArtemisPresalePage() {
   const [txPhase, setTxPhase] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [showEmailCapture, setShowEmailCapture] = useState(false);
+  const [contactName, setContactName] = useState('');
   const [email, setEmail] = useState('');
+  const [emailConsent, setEmailConsent] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState('');
 
   const { address, isConnected, connector, chain } = useAccount();
@@ -680,27 +685,39 @@ export default function ArtemisPresalePage() {
   const handleEmailSubmit = async (event) => {
     event.preventDefault();
     setEmailStatus('');
+    setIsSavingEmail(true);
 
     try {
       const response = await fetch('/api/presale-interest', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
+          name: contactName,
           email,
+          consentToEmail: emailConsent,
           walletAddress: address,
           source: 'presale-success',
-          timestamp: new Date().toISOString(),
+          transactionHash: activeTxHash,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Email signup failed');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Email signup failed');
       }
 
+      setContactName('');
       setEmail('');
+      setEmailConsent(false);
       setEmailStatus('Saved for launch updates.');
+      window.setTimeout(() => {
+        setShowEmailCapture(false);
+        setEmailStatus('');
+      }, 1200);
     } catch {
-      setEmailStatus('Unable to save email right now.');
+      setEmailStatus('Unable to save your details right now.');
+    } finally {
+      setIsSavingEmail(false);
     }
   };
 
@@ -817,7 +834,7 @@ export default function ArtemisPresalePage() {
                       Connect Wallet
                     </Button>
                     <div className="mt-4 text-center text-sm text-blue-100/60">
-                      Choose MetaMask, WalletConnect, or Coinbase Wallet.
+                      Choose WalletConnect, MetaMask, or Trust Wallet.
                     </div>
                   </div>
                 ) : (
@@ -1074,25 +1091,103 @@ export default function ArtemisPresalePage() {
           </section>
 
           {showEmailCapture && (
-            <section className="mt-5 rounded-[1.75rem] border border-cyan-300/20 bg-cyan-300/10 p-5">
-              <h2 className="text-xl font-semibold text-white">Stay close to launch</h2>
-              <form onSubmit={handleEmailSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm">
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="launch-updates-heading"
+                className="w-full max-w-md rounded-[1.75rem] border border-cyan-300/20 bg-[#07111f] p-5 shadow-[0_0_80px_rgba(34,211,238,0.16)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-300/20 bg-cyan-300/10 text-cyan-100">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <h2 id="launch-updates-heading" className="mt-4 text-2xl font-semibold text-white">
+                      Stay close to launch
+                    </h2>
+                    <p className="mt-2 text-sm text-blue-100/60">
+                      Get launch updates and claim reminders for this wallet.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailCapture(false)}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 text-blue-100/70 hover:bg-white/5"
+                    aria-label="Close launch updates form"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleEmailSubmit} className="mt-5 space-y-3">
+                  <input
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    value={contactName}
+                    onChange={(event) => setContactName(event.target.value)}
+                    placeholder="Name"
+                    className="h-12 w-full rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none placeholder:text-blue-100/35"
+                  />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="Email for claim reminders"
-                  className="h-12 min-w-0 flex-1 rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none placeholder:text-blue-100/35"
+                    placeholder="Email"
+                    className="h-12 w-full rounded-2xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none placeholder:text-blue-100/35"
                 />
-                <Button type="submit" className="h-12 rounded-2xl px-5 font-medium">
-                  Save Email
-                </Button>
+
+                  <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-blue-100/70">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={emailConsent}
+                      onChange={(event) => setEmailConsent(event.target.checked)}
+                      className="mt-1 h-4 w-4 accent-cyan-300"
+                    />
+                    <span>
+                      I agree to receive Artemis launch updates, claim reminders, and project news
+                      for this wallet.
+                    </span>
+                  </label>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-blue-100/45">
+                    Wallet: {formatAddress(address)}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-12 rounded-2xl font-medium"
+                      onClick={() => setShowEmailCapture(false)}
+                    >
+                      Skip
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="h-12 rounded-2xl px-5 font-medium"
+                      disabled={isSavingEmail}
+                    >
+                      {isSavingEmail ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save'
+                      )}
+                    </Button>
+                  </div>
               </form>
               {emailStatus && (
                 <div className="mt-3 text-sm text-cyan-100/80">{emailStatus}</div>
               )}
-            </section>
+              </section>
+            </div>
           )}
         </section>
       </div>
