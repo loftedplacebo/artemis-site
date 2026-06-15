@@ -10,7 +10,7 @@ import {
 import {
   metaMaskWallet,
   walletConnectWallet,
-  coinbaseWallet,
+  trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { WagmiProvider, http } from 'wagmi';
 import { mainnet, sepolia } from 'wagmi/chains';
@@ -26,7 +26,7 @@ const config = getDefaultConfig({
   wallets: [
     {
       groupName: 'Recommended',
-      wallets: [metaMaskWallet, walletConnectWallet, coinbaseWallet],
+      wallets: [walletConnectWallet, metaMaskWallet, trustWallet],
     },
   ],
   transports: {
@@ -48,6 +48,7 @@ export default function Providers({ children }) {
             accentColorForeground: 'white',
             borderRadius: 'large',
           })}
+          modalSize="compact"
         >
           {children}
         </RainbowKitProvider>
