@@ -361,6 +361,7 @@ export default function ArtemisPresalePage() {
     if (isOpeningWallet) return 'Opening wallet...';
     if (isConfirmingTransaction) return txPhase === 'approve' ? 'Confirming approval...' : 'Confirming transaction...';
     if (claimActive) return 'Buying closed - claims active';
+    if (parsedPaymentAmount <= 0n) return 'Enter contribution amount';
     if (approvalNeeded) return `Approve ${selectedAsset.symbol}`;
     return `Buy ARTM3 with ${selectedAsset.symbol}`;
   }, [
@@ -370,6 +371,7 @@ export default function ArtemisPresalePage() {
     isConfirmingTransaction,
     isOnSepolia,
     isOpeningWallet,
+    parsedPaymentAmount,
     selectedAsset.symbol,
     txPhase,
   ]);
@@ -477,6 +479,7 @@ export default function ArtemisPresalePage() {
     if (txPhase === 'purchase') {
       setSuccessMessage(`Purchase confirmed. Your ARTM3 allocation has been refreshed.`);
       setShowEmailCapture(true);
+      setPaymentAmount('');
       buyerDashboardRead.refetch();
       saleStatusRead.refetch();
       currentBatchRead.refetch();
