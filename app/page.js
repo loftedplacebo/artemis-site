@@ -47,7 +47,7 @@ const faqItems = [
   {
     question: 'What is Artemis?',
     answer:
-      'Artemis is an Ethereum-based memecoin with a fixed supply of 10,000,000 ARTM3 tokens. The project is designed around the Artemis III Moon mission, combining a strong real-world narrative with a structured crypto presale and exchange launch strategy.',
+      'Artemis is an Ethereum-based coin with a fixed supply of 10,000,000 ARTM3 tokens. The project is designed around the Artemis III Moon mission, combining a strong real-world narrative with a structured crypto presale and exchange launch strategy.',
   },
   {
     question: 'How can I buy $ARTM3?',
@@ -150,7 +150,7 @@ export default function ArtemisLandingPage() {
                 Artemis
               </div>
               <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">
-                Lunar memecoin mission
+                Lunar coin mission
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ export default function ArtemisLandingPage() {
             </p>
 
             <p className="mt-5 text-base text-blue-100/65 max-w-2xl leading-8">
-              Artemis is an Ethereum-based memecoin with a fixed supply of 10,000,000 ARTM3
+              Artemis is an Ethereum-based coin with a fixed supply of 10,000,000 ARTM3
               tokens. The live crypto presale allows buyers to purchase $ARTM3 using ETH, USDT or
               USDC before the planned exchange launch.
             </p>
@@ -337,7 +337,7 @@ export default function ArtemisLandingPage() {
               </div>
 
               <p className="mt-6 text-blue-100/70 leading-8 max-w-3xl">
-                Artemis is an Ethereum memecoin built around the Artemis III Moon mission. The
+                Artemis is an Ethereum coin built around the Artemis III Moon mission. The
                 project combines a fixed 10,000,000 token supply, staged presale pricing and a
                 planned exchange launch strategy designed to build momentum into one of the biggest
                 global space narratives in the world.
@@ -847,7 +847,7 @@ export default function ArtemisLandingPage() {
             Everything you need to know before buying $ARTM3.
           </h2>
           <div className="text-blue-100/65 mt-4 max-w-3xl leading-8">
-            Artemis is designed to be simple to understand: a fixed-supply Ethereum memecoin, a
+            Artemis is designed to be simple to understand: a fixed-supply Ethereum coin, a
             live crypto presale, and a launch strategy built around one of the most recognisable
             Moon missions in the world.
           </div>

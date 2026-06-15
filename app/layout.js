@@ -7,12 +7,12 @@ export const metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: 'Artemis ($ARTM3) | Ethereum Memecoin Presale',
+    default: 'Artemis ($ARTM3) | Ethereum Coin Presale',
     template: '%s | Artemis3.io',
   },
 
   description:
-    'Buy Artemis ($ARTM3), an Ethereum-based memecoin with a fixed 10M supply. Join the live crypto presale using ETH, USDT or USDC before the planned exchange launch.',
+    'Buy Artemis ($ARTM3), an Ethereum-based coin with a fixed 10M supply. Join the live crypto presale using ETH, USDT or USDC before the planned exchange launch.',
 
   verification: {
     google: '8-TC18_G7qkTSam-Ccvk0CudU68lL4Qv4cu2na_VVM8',
@@ -33,7 +33,7 @@ export const metadata = {
     type: 'website',
     url: siteUrl,
     siteName: 'Artemis',
-    title: 'Artemis ($ARTM3) | Ethereum Memecoin Presale',
+    title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
     description:
       'Buy $ARTM3 in the live Ethereum presale. Fixed 10M supply, staged pricing and a launch aligned with the Artemis III Moon mission.',
     images: [
@@ -47,7 +47,7 @@ export const metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Artemis ($ARTM3) | Ethereum Memecoin Presale',
+    title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
     description:
       'Buy $ARTM3 in the live Ethereum presale using ETH, USDT or USDC. Fixed supply, staged pricing and a Tier 1 exchange ambition.',
     images: [`${siteUrl}/og-image.png`],
@@ -73,7 +73,7 @@ export default function RootLayout({ children }) {
                   "name": "What is Artemis?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Artemis is an Ethereum-based memecoin with a fixed supply of 10,000,000 ARTM3 tokens. The project is designed around the Artemis III Moon mission, combining a real-world narrative with a structured crypto presale and exchange launch strategy."
+                    "text": "Artemis is an Ethereum-based coin with a fixed supply of 10,000,000 ARTM3 tokens. The project is designed around the Artemis III Moon mission, combining a real-world narrative with a structured crypto presale and exchange launch strategy."
                   }
                 },
                 {
