@@ -4,7 +4,6 @@ export const DEPLOYMENT_PARAMS = {
     symbol: "ARTM3"
   },
   chainlink: {
-    sepoliaEthUsdFeed: "0x694AA1769357215DE4FAC081bf1f309aDC325306",
     maxPriceFeedAge: "86400"
   },
   presale: {

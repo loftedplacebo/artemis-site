@@ -1,17 +1,17 @@
 import { ethers, run } from "hardhat";
 import { DEPLOYMENT_PARAMS } from "./params";
 
-function requireEnv(name: string): string {
+function requireAddress(name: string): string {
   const value = process.env[name];
   if (!value || value.trim() === "") {
     throw new Error(`Missing required environment variable: ${name}`);
   }
-  return value.trim();
-}
 
-function getEnvOrDefault(name: string, fallback: string): string {
-  const value = process.env[name];
-  return value && value.trim() !== "" ? value.trim() : fallback;
+  if (!ethers.isAddress(value.trim())) {
+    throw new Error(`Invalid Ethereum address in ${name}`);
+  }
+
+  return ethers.getAddress(value.trim());
 }
 
 async function maybeVerify(address: string, args: readonly unknown[]) {
@@ -28,13 +28,10 @@ async function maybeVerify(address: string, args: readonly unknown[]) {
 }
 
 async function main() {
-  const treasury = requireEnv("TREASURY_WALLET");
-  const usdt = requireEnv("USDT_ADDRESS");
-  const usdc = requireEnv("USDC_ADDRESS");
-  const ethUsdFeed = getEnvOrDefault(
-    "ETH_USD_PRICE_FEED",
-    DEPLOYMENT_PARAMS.chainlink.sepoliaEthUsdFeed
-  );
+  const treasury = requireAddress("TREASURY_WALLET");
+  const usdt = requireAddress("USDT_ADDRESS");
+  const usdc = requireAddress("USDC_ADDRESS");
+  const ethUsdFeed = requireAddress("ETH_USD_PRICE_FEED");
 
   const [deployer] = await ethers.getSigners();
   console.log("Deploying V2 with:", deployer.address);
