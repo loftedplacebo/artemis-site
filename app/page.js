@@ -777,7 +777,7 @@ export default function ArtemisLandingPage() {
               </div>
               <div>
                 <div className="text-xs uppercase tracking-[0.25em] text-blue-200/45">Team</div>
-                <div className="text-blue-50 font-semibold">Fully Vested</div>
+                <div className="text-blue-50 font-semibold">12 Month Lock</div>
               </div>
             </div>
           </div>
@@ -800,7 +800,7 @@ export default function ArtemisLandingPage() {
                   ['Liquidity', '20%'],
                   ['Growth Fund', '15%'],
                   ['Treasury', '10%'],
-                  ['Team (Vested)', '5%'],
+                  ['Team (12M Lock)', '5%'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between">
                     <div className="text-blue-100/70">{label}</div>
@@ -823,9 +823,10 @@ export default function ArtemisLandingPage() {
 
             <div className="rounded-3xl border border-blue-400/20 bg-black/30 p-5">
               <div className="text-blue-200/45 text-xs uppercase">Team Tokens</div>
-              <h3 className="text-blue-50 font-semibold mt-2">Vested</h3>
+              <h3 className="text-blue-50 font-semibold mt-2">12 Month Lock</h3>
               <div className="text-blue-100/60 mt-2 text-sm">
-                Team allocation subject to a 12 month cliff and 12 month vesting schedule.
+                The 500,000 ARTM3 team allocation is locked for 12 months and unlocks in full at
+                the end of that period.
               </div>
             </div>
 
