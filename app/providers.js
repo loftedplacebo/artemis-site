@@ -13,11 +13,11 @@ import {
   trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { WagmiProvider, http } from 'wagmi';
-import { mainnet, sepolia } from 'wagmi/chains';
+import { mainnet } from 'wagmi/chains';
 import { useState } from 'react';
 
 const projectId = 'f97f0ce6825ed5d6b483e58673941832';
-const chains = [sepolia, mainnet];
+const chains = [mainnet];
 
 const config = getDefaultConfig({
   appName: 'Artemis',
@@ -30,7 +30,6 @@ const config = getDefaultConfig({
     },
   ],
   transports: {
-    [sepolia.id]: http(),
     [mainnet.id]: http(),
   },
   ssr: true,

@@ -29,9 +29,9 @@ import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
 
 import {
   ARTEMIS_CHAIN,
+  ARTEMIS_CONTRACTS,
   ARTEMIS_EXPLORER_TX_BASE,
   ARTEMIS_PRESALE_ABI,
-  ARTEMIS_SEPOLIA_CONTRACTS,
   ERC20_APPROVAL_ABI,
 } from '@/lib/web3/artemisContracts';
 import {
@@ -58,7 +58,7 @@ const acceptedAssets = [
     label: 'USDC',
     decimals: STABLE_DECIMALS,
     isNative: false,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.usdc,
+    address: ARTEMIS_CONTRACTS.usdc,
     buyFunction: 'buyWithUSDC',
     quoteFunction: 'quoteForUSDC',
   },
@@ -67,7 +67,7 @@ const acceptedAssets = [
     label: 'USDT',
     decimals: STABLE_DECIMALS,
     isNative: false,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.usdt,
+    address: ARTEMIS_CONTRACTS.usdt,
     buyFunction: 'buyWithUSDT',
     quoteFunction: 'quoteForUSDT',
   },
@@ -241,7 +241,7 @@ export default function ArtemisPresalePage() {
 
   const saleStatusRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'getSaleStatus',
     chainId: ARTEMIS_CHAIN.id,
     query: {
@@ -251,21 +251,21 @@ export default function ArtemisPresalePage() {
 
   const presaleCapRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'presaleTokenCap',
     chainId: ARTEMIS_CHAIN.id,
   });
 
   const minimumPurchaseRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'minimumPurchaseUsd',
     chainId: ARTEMIS_CHAIN.id,
   });
 
   const batchCountRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'getBatchCount',
     chainId: ARTEMIS_CHAIN.id,
   });
@@ -282,7 +282,7 @@ export default function ArtemisPresalePage() {
 
   const currentBatchRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'getBatchInfo',
     args: [currentBatchId],
     chainId: ARTEMIS_CHAIN.id,
@@ -294,7 +294,7 @@ export default function ArtemisPresalePage() {
 
   const buyerDashboardRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'getBuyerDashboard',
     args: [address || ZERO_ADDRESS],
     chainId: ARTEMIS_CHAIN.id,
@@ -306,9 +306,9 @@ export default function ArtemisPresalePage() {
 
   const allowanceRead = useReadContract({
     abi: ERC20_APPROVAL_ABI,
-    address: selectedAsset.address || ARTEMIS_SEPOLIA_CONTRACTS.usdt,
+    address: selectedAsset.address || ARTEMIS_CONTRACTS.usdt,
     functionName: 'allowance',
-    args: [address || ZERO_ADDRESS, ARTEMIS_SEPOLIA_CONTRACTS.presale],
+    args: [address || ZERO_ADDRESS, ARTEMIS_CONTRACTS.presale],
     chainId: ARTEMIS_CHAIN.id,
     query: {
       enabled: Boolean(isConnected && address && !selectedAsset.isNative),
@@ -318,7 +318,7 @@ export default function ArtemisPresalePage() {
 
   const balanceRead = useReadContract({
     abi: ERC20_APPROVAL_ABI,
-    address: selectedAsset.address || ARTEMIS_SEPOLIA_CONTRACTS.usdt,
+    address: selectedAsset.address || ARTEMIS_CONTRACTS.usdt,
     functionName: 'balanceOf',
     args: [address || ZERO_ADDRESS],
     chainId: ARTEMIS_CHAIN.id,
@@ -339,7 +339,7 @@ export default function ArtemisPresalePage() {
 
   const quoteRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: selectedAsset.quoteFunction,
     args: [parsedPaymentAmount],
     chainId: ARTEMIS_CHAIN.id,
@@ -350,7 +350,7 @@ export default function ArtemisPresalePage() {
 
   const ethUsdValueRead = useReadContract({
     abi: ARTEMIS_PRESALE_ABI,
-    address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+    address: ARTEMIS_CONTRACTS.presale,
     functionName: 'quoteEthUsdValue',
     args: [parsedPaymentAmount],
     chainId: ARTEMIS_CHAIN.id,
@@ -369,7 +369,7 @@ export default function ArtemisPresalePage() {
   });
 
   const selectedWalletName = connector ? normaliseConnectorName(connector.name) : null;
-  const isOnSepolia = chain?.id === ARTEMIS_CHAIN.id;
+  const isOnMainnet = chain?.id === ARTEMIS_CHAIN.id;
   const allowance = selectedAsset.isNative ? parsedPaymentAmount : allowanceRead.data || 0n;
   const selectedBalance = selectedAsset.isNative
     ? nativeBalanceRead.data?.value || 0n
@@ -413,7 +413,7 @@ export default function ArtemisPresalePage() {
 
   const primaryButtonLabel = useMemo(() => {
     if (!isConnected) return 'Connect Wallet';
-    if (!isOnSepolia) return 'Switch to Sepolia';
+    if (!isOnMainnet) return 'Switch to Ethereum';
     if (isOpeningWallet) return 'Opening wallet...';
     if (isConfirmingTransaction) return txPhase === 'approve' ? 'Confirming approval...' : 'Confirming transaction...';
     if (claimActive) return 'Buying closed - claims active';
@@ -425,7 +425,7 @@ export default function ArtemisPresalePage() {
     claimActive,
     isConnected,
     isConfirmingTransaction,
-    isOnSepolia,
+    isOnMainnet,
     isOpeningWallet,
     parsedPaymentAmount,
     selectedAsset.symbol,
@@ -433,7 +433,7 @@ export default function ArtemisPresalePage() {
   ]);
 
   const primaryBlockReasons = useMemo(() => {
-    if (!isConnected || !isOnSepolia) return [];
+    if (!isConnected || !isOnMainnet) return [];
 
     const reasons = [];
 
@@ -446,7 +446,7 @@ export default function ArtemisPresalePage() {
     }
 
     if (claimActive) {
-      reasons.push('Buying is closed because claims are active on this Sepolia contract.');
+      reasons.push('Buying is closed because claims are active on this Ethereum contract.');
     }
 
     if (parsedPaymentAmount <= 0n) {
@@ -495,7 +495,7 @@ export default function ArtemisPresalePage() {
     hasEnoughBalance,
     hasPaymentUsdValue,
     isConnected,
-    isOnSepolia,
+    isOnMainnet,
     meetsMinimum,
     minimumPurchaseUsd,
     parsedPaymentAmount,
@@ -650,7 +650,7 @@ export default function ArtemisPresalePage() {
       return;
     }
 
-    if (!isOnSepolia) {
+    if (!isOnMainnet) {
       switchChain({ chainId: ARTEMIS_CHAIN.id });
       return;
     }
@@ -686,7 +686,7 @@ export default function ArtemisPresalePage() {
     }
 
     if (!hasEnoughBalance) {
-      setActionMessage(`Insufficient ${selectedAsset.symbol} balance on Sepolia.`);
+      setActionMessage(`Insufficient ${selectedAsset.symbol} balance on Ethereum.`);
       return;
     }
 
@@ -710,20 +710,20 @@ export default function ArtemisPresalePage() {
               abi: ERC20_APPROVAL_ABI,
               address: selectedAsset.address,
               functionName: 'approve',
-              args: [ARTEMIS_SEPOLIA_CONTRACTS.presale, parsedPaymentAmount],
+              args: [ARTEMIS_CONTRACTS.presale, parsedPaymentAmount],
               chainId: ARTEMIS_CHAIN.id,
             }
           : selectedAsset.isNative
             ? {
                 abi: ARTEMIS_PRESALE_ABI,
-                address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+                address: ARTEMIS_CONTRACTS.presale,
                 functionName: selectedAsset.buyFunction,
                 value: parsedPaymentAmount,
                 chainId: ARTEMIS_CHAIN.id,
               }
           : {
               abi: ARTEMIS_PRESALE_ABI,
-              address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+              address: ARTEMIS_CONTRACTS.presale,
               functionName: selectedAsset.buyFunction,
               args: [parsedPaymentAmount],
               chainId: ARTEMIS_CHAIN.id,
@@ -751,7 +751,7 @@ export default function ArtemisPresalePage() {
       return;
     }
 
-    if (!isOnSepolia) {
+    if (!isOnMainnet) {
       switchChain({ chainId: ARTEMIS_CHAIN.id });
       return;
     }
@@ -765,7 +765,7 @@ export default function ArtemisPresalePage() {
       setTxPhase('claim');
       const hash = await writeContractAsync({
         abi: ARTEMIS_PRESALE_ABI,
-        address: ARTEMIS_SEPOLIA_CONTRACTS.presale,
+        address: ARTEMIS_CONTRACTS.presale,
         functionName: 'claimTokens',
         chainId: ARTEMIS_CHAIN.id,
       });
@@ -843,7 +843,7 @@ export default function ArtemisPresalePage() {
                 ARTEMIS
               </div>
               <div className="text-xs tracking-[0.35em] text-blue-300/60">
-                SEPOLIA PRESALE TEST
+                ETHEREUM MAINNET PRESALE
               </div>
             </div>
           </div>
@@ -865,7 +865,7 @@ export default function ArtemisPresalePage() {
             <div className="w-full lg:w-[42%]">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-medium text-cyan-100">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                Ethereum Sepolia
+                Ethereum Mainnet
               </div>
               <h1
                 id="presale-heading"
@@ -877,7 +877,7 @@ export default function ArtemisPresalePage() {
                 Batch {Number(currentBatchId) + 1} of {Number(batchCount || 6n)} - {formatUsd(currentPriceUsd)}
               </div>
               <p className="mt-4 text-sm text-blue-100/65 md:text-base">
-                Buy ARTM3 through the deployed Sepolia presale contract using ETH, test USDC, or test USDT.
+                Buy ARTM3 through the deployed Ethereum mainnet presale contract using ETH, USDC, or USDT.
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
@@ -963,14 +963,14 @@ export default function ArtemisPresalePage() {
                       </div>
                     </div>
 
-                    {!isOnSepolia && (
+                    {!isOnMainnet && (
                       <div className="rounded-3xl border border-amber-300/20 bg-amber-400/10 p-4">
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-100" />
                           <div>
-                            <div className="font-medium text-amber-100">Sepolia required</div>
+                            <div className="font-medium text-amber-100">Ethereum required</div>
                             <div className="mt-1 text-sm text-amber-100/70">
-                              Switch your wallet to Sepolia before testing the presale.
+                              Switch your wallet to Ethereum mainnet before continuing.
                             </div>
                           </div>
                         </div>
@@ -997,7 +997,7 @@ export default function ArtemisPresalePage() {
                             aria-pressed={active}
                           >
                             <div className="font-semibold text-white">{asset.label}</div>
-                            <div className="mt-1 text-sm text-blue-100/55">Sepolia</div>
+                            <div className="mt-1 text-sm text-blue-100/55">Ethereum</div>
                           </button>
                         );
                       })}
@@ -1090,7 +1090,7 @@ export default function ArtemisPresalePage() {
                             rel="noreferrer"
                             className="mt-3 inline-flex items-center gap-1 text-sm text-cyan-100 hover:underline"
                           >
-                            View on Sepolia Etherscan
+                            View on Etherscan
                             <ExternalLink className="h-3.5 w-3.5" />
                           </a>
                         )}
@@ -1177,11 +1177,11 @@ export default function ArtemisPresalePage() {
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-blue-100/55">Presale</span>
-                  <span className="font-medium text-white">{formatAddress(ARTEMIS_SEPOLIA_CONTRACTS.presale)}</span>
+                  <span className="font-medium text-white">{formatAddress(ARTEMIS_CONTRACTS.presale)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-blue-100/55">Token</span>
-                  <span className="font-medium text-white">{formatAddress(ARTEMIS_SEPOLIA_CONTRACTS.token)}</span>
+                  <span className="font-medium text-white">{formatAddress(ARTEMIS_CONTRACTS.token)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-blue-100/55">Claims</span>

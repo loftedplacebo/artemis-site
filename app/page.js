@@ -11,8 +11,23 @@ import {
   TrendingDown,
   X,
   Send,
+  ExternalLink,
 } from 'lucide-react';
 import CountdownCard from './components/landing/CountdownCard';
+import {
+  ARTEMIS_CONTRACTS,
+  ARTEMIS_EXPLORER_ADDRESS_BASE,
+} from '@/lib/web3/artemisContracts';
+
+const verifiedContracts = [
+  { label: 'ARTM3 Token', address: ARTEMIS_CONTRACTS.token },
+  { label: 'Presale V2', address: ARTEMIS_CONTRACTS.presale },
+  { label: 'Team Lock', address: ARTEMIS_CONTRACTS.teamLock },
+];
+
+function formatAddress(address) {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
 
 const missionTimeline = [
   {
@@ -52,7 +67,7 @@ const faqItems = [
   {
     question: 'How can I buy $ARTM3?',
     answer:
-      'You can buy $ARTM3 through the live presale by connecting a compatible crypto wallet and paying with ETH, USDT or USDC on the Ethereum network.',
+      'When the presale is activated, buyers can connect a compatible crypto wallet and pay with ETH, USDT or USDC on Ethereum mainnet.',
   },
   {
     question: 'Which network does Artemis use?',
@@ -215,8 +230,8 @@ export default function ArtemisLandingPage() {
 
             <p className="mt-5 text-base text-blue-100/65 max-w-2xl leading-8">
               Artemis is an Ethereum-based coin with a fixed supply of 10,000,000 ARTM3
-              tokens. The live crypto presale allows buyers to purchase $ARTM3 using ETH, USDT or
-              USDC before the planned exchange launch.
+              tokens. The verified Ethereum mainnet presale supports purchases using ETH, USDT or
+              USDC when the onchain sale is activated.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -225,7 +240,7 @@ export default function ArtemisLandingPage() {
                 className="rounded-2xl h-14 px-7 text-base font-semibold shadow-[0_0_30px_rgba(59,130,246,0.35)]"
               >
                 <Rocket className="w-4 h-4 mr-2" />
-                Board Presale Now
+                View Presale
               </ButtonLink>
 
               <ButtonLink
@@ -325,14 +340,14 @@ export default function ArtemisLandingPage() {
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <div className="text-sm uppercase tracking-[0.35em] text-cyan-200/55">
-                    Live crypto presale
+                    Ethereum mainnet presale
                   </div>
                   <h2 id="buy-heading" className="text-3xl md:text-4xl font-semibold mt-2 text-blue-50">
-                    Buy Artemis in the live $ARTM3 presale.
+                    Prepare for the $ARTM3 presale.
                   </h2>
                 </div>
                 <div className="rounded-full border border-cyan-300/20 bg-black/25 px-4 py-2 text-sm text-cyan-100/80">
-                  Presale now open
+                  Onchain status shown in presale
                 </div>
               </div>
 
@@ -363,8 +378,8 @@ export default function ArtemisLandingPage() {
                     Buy with ETH, USDT or USDC
                   </h3>
                   <div className="text-blue-100/65 mt-3 leading-7 text-sm">
-                    The live presale accepts major crypto payment options, giving buyers a simple
-                    route to secure $ARTM3.
+                    The presale supports major crypto payment options when its onchain sale status
+                    is activated.
                   </div>
                 </div>
 
@@ -739,6 +754,39 @@ export default function ArtemisLandingPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-6 border-y border-blue-400/20 py-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="text-blue-200/45 text-xs uppercase tracking-[0.25em]">
+                  Ethereum Mainnet
+                </div>
+                <h3 className="mt-2 text-xl font-semibold text-blue-50">Verified Contracts</h3>
+              </div>
+              <div className="text-sm text-blue-100/60">
+                Source code and deployment details are public on Etherscan.
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {verifiedContracts.map((contract) => (
+                <a
+                  key={contract.address}
+                  href={`${ARTEMIS_EXPLORER_ADDRESS_BASE}/${contract.address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between gap-3 border-b border-blue-400/15 pb-3 text-blue-100 transition-colors hover:text-cyan-200"
+                >
+                  <span>
+                    <span className="block text-sm font-semibold">{contract.label}</span>
+                    <span className="mt-1 block font-mono text-xs text-blue-100/55">
+                      {formatAddress(contract.address)}
+                    </span>
+                  </span>
+                  <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+                </a>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section id="tokenomics" aria-labelledby="tokenomics-heading" className="py-12">
@@ -777,7 +825,7 @@ export default function ArtemisLandingPage() {
               </div>
               <div>
                 <div className="text-xs uppercase tracking-[0.25em] text-blue-200/45">Team</div>
-                <div className="text-blue-50 font-semibold">12 Month Lock</div>
+                <div className="text-blue-50 font-semibold">Locked to 2028</div>
               </div>
             </div>
           </div>
@@ -800,7 +848,7 @@ export default function ArtemisLandingPage() {
                   ['Liquidity', '20%'],
                   ['Growth Fund', '15%'],
                   ['Treasury', '10%'],
-                  ['Team (12M Lock)', '5%'],
+                  ['Team (2028 Lock)', '5%'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between">
                     <div className="text-blue-100/70">{label}</div>
@@ -823,10 +871,10 @@ export default function ArtemisLandingPage() {
 
             <div className="rounded-3xl border border-blue-400/20 bg-black/30 p-5">
               <div className="text-blue-200/45 text-xs uppercase">Team Tokens</div>
-              <h3 className="text-blue-50 font-semibold mt-2">12 Month Lock</h3>
+              <h3 className="text-blue-50 font-semibold mt-2">Locked Until 1 January 2028</h3>
               <div className="text-blue-100/60 mt-2 text-sm">
-                The 500,000 ARTM3 team allocation is locked for 12 months and unlocks in full at
-                the end of that period.
+                The 500,000 ARTM3 team allocation is locked onchain and cannot unlock before
+                1 January 2028 at 00:00 UTC.
               </div>
             </div>
 
@@ -849,7 +897,7 @@ export default function ArtemisLandingPage() {
           </h2>
           <div className="text-blue-100/65 mt-4 max-w-3xl leading-8">
             Artemis is designed to be simple to understand: a fixed-supply Ethereum coin, a
-            live crypto presale, and a launch strategy built around one of the most recognisable
+            verified Ethereum mainnet presale, and a launch strategy built around one of the most recognisable
             Moon missions in the world.
           </div>
 

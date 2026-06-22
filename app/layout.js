@@ -12,7 +12,7 @@ export const metadata = {
   },
 
   description:
-    'Buy Artemis ($ARTM3), an Ethereum-based coin with a fixed 10M supply. Join the live crypto presale using ETH, USDT or USDC before the planned exchange launch.',
+    'Artemis ($ARTM3) is an Ethereum-based coin with a fixed 10M supply, a verified mainnet presale, and staged ETH, USDT, and USDC payment support.',
 
   verification: {
     google: '8-TC18_G7qkTSam-Ccvk0CudU68lL4Qv4cu2na_VVM8',
@@ -35,7 +35,7 @@ export const metadata = {
     siteName: 'Artemis',
     title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
     description:
-      'Buy $ARTM3 in the live Ethereum presale. Fixed 10M supply, staged pricing and a launch aligned with the Artemis III Moon mission.',
+      'Artemis is a fixed-supply Ethereum coin with a verified mainnet presale, staged pricing and a launch aligned with the Artemis III Moon mission.',
     images: [
       {
         url: `${siteUrl}/og-image.png`,
@@ -49,7 +49,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
     description:
-      'Buy $ARTM3 in the live Ethereum presale using ETH, USDT or USDC. Fixed supply, staged pricing and a Tier 1 exchange ambition.',
+      'Artemis is a fixed-supply Ethereum coin with a verified mainnet presale and ETH, USDT, and USDC payment support.',
     images: [`${siteUrl}/og-image.png`],
   },
 };
@@ -81,7 +81,7 @@ export default function RootLayout({ children }) {
                   "name": "How can I buy $ARTM3?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "You can buy $ARTM3 through the live presale by connecting a crypto wallet and paying with ETH, USDT or USDC on the Ethereum network."
+                    "text": "When the presale is activated, buyers can connect a crypto wallet and pay with ETH, USDT or USDC on Ethereum mainnet."
                   }
                 },
                 {

@@ -11,6 +11,7 @@
     "deploy:v2:sepolia": "hardhat run scripts/deploy-v2.ts --network sepolia",
     "deploy:v1:mainnet": "hardhat run scripts/deploy.ts --network mainnet",
     "deploy:v2:mainnet": "hardhat run scripts/deploy-v2.ts --network mainnet",
+    "deploy:team-lock:mainnet": "hardhat compile && hardhat run --no-compile scripts/deploy-team-lock-mainnet.ts --network mainnet",
     "deploy:mainnet": "hardhat run scripts/deploy-v2.ts --network mainnet"
   },
   "devDependencies": {
