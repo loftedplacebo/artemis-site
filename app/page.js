@@ -12,6 +12,7 @@ import {
   X,
   Send,
   ExternalLink,
+  FileText,
 } from 'lucide-react';
 import CountdownCard from './components/landing/CountdownCard';
 import {
@@ -102,7 +103,7 @@ const faqItems = [
   {
     question: 'Is liquidity locked?',
     answer:
-      'Yes. Artemis is designed with locked liquidity at launch to help build trust, transparency and stability during the initial trading phase.',
+      'No liquidity position has been created yet. Any future liquidity arrangement and lock evidence will be published before trading begins.',
   },
   {
     question: 'Do I need a crypto wallet to participate?',
@@ -171,6 +172,14 @@ export default function ArtemisLandingPage() {
           </div>
 
           <div className="flex items-center gap-3">
+  <ButtonLink
+    href="/whitepaper"
+    variant="ghost"
+    className="hidden rounded-2xl h-11 px-4 text-sm md:inline-flex"
+  >
+    <FileText className="mr-2 h-4 w-4" />
+    Whitepaper
+  </ButtonLink>
   {/* Social Icons */}
   <a
     href="https://x.com/artemisartm3"
@@ -262,6 +271,10 @@ export default function ArtemisLandingPage() {
               </ButtonLink>
               <ButtonLink href="#faq" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
                 Read FAQ
+              </ButtonLink>
+              <ButtonLink href="/whitepaper" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
+                <FileText className="mr-2 h-4 w-4" />
+                Whitepaper
               </ButtonLink>
             </div>
 
@@ -804,8 +817,8 @@ export default function ArtemisLandingPage() {
                 <Lock className="w-5 h-5 text-emerald-300" />
               </div>
               <div>
-                <div className="text-xs uppercase tracking-[0.25em] text-blue-200/45">Liquidity</div>
-                <div className="text-blue-50 font-semibold">Locked</div>
+              <div className="text-xs uppercase tracking-[0.25em] text-blue-200/45">Liquidity</div>
+                <div className="text-blue-50 font-semibold">Planned</div>
               </div>
             </div>
 
@@ -862,10 +875,10 @@ export default function ArtemisLandingPage() {
           <div className="grid md:grid-cols-3 gap-6 mt-6">
             <div className="rounded-3xl border border-blue-400/20 bg-black/30 p-5">
               <div className="text-blue-200/45 text-xs uppercase">Liquidity</div>
-              <h3 className="text-blue-50 font-semibold mt-2">Locked</h3>
+              <h3 className="text-blue-50 font-semibold mt-2">Planned for Launch</h3>
               <div className="text-blue-100/60 mt-2 text-sm">
-                100% of liquidity is locked at launch to ensure trust and stability during the
-                initial trading phase.
+                Liquidity is planned for launch. No liquidity position has been created or locked
+                yet; any future lock will be published with onchain proof.
               </div>
             </div>
 

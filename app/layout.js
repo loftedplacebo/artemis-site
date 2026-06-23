@@ -137,7 +137,7 @@ export default function RootLayout({ children }) {
                   "name": "Is liquidity locked?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Yes, liquidity is planned to be locked at launch to ensure transparency and trust."
+                    "text": "No liquidity position has been created yet. Artemis intends to publish any future liquidity arrangement and lock evidence before trading begins."
                   }
                 },
                 {

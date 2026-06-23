@@ -21,6 +21,7 @@ import {
   Loader2,
   Mail,
   RefreshCw,
+  Rocket,
   ShieldCheck,
   Wallet,
   X,
@@ -30,6 +31,7 @@ import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   ARTEMIS_CHAIN,
   ARTEMIS_CONTRACTS,
+  ARTEMIS_EXPLORER_ADDRESS_BASE,
   ARTEMIS_EXPLORER_TX_BASE,
   ARTEMIS_PRESALE_ABI,
   ERC20_APPROVAL_ABI,
@@ -166,7 +168,7 @@ function percentage(numerator, denominator) {
 
 function NumberInput({ label, value, onChange, suffix, minAmount }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4 shadow-[0_12px_28px_rgba(2,6,23,0.22)]">
       <div className="flex items-center justify-between gap-3">
         <div className="text-[11px] uppercase tracking-[0.24em] text-blue-200/45">{label}</div>
         {minAmount > 0n && (
@@ -193,8 +195,10 @@ function NumberInput({ label, value, onChange, suffix, minAmount }) {
 
 function Stat({ label, value }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-      <div className="text-[11px] uppercase tracking-[0.2em] text-blue-200/45">{label}</div>
+    <div className="min-w-0 rounded-2xl border border-white/15 bg-white/[0.06] px-3 py-4 shadow-[0_12px_28px_rgba(2,6,23,0.22)] sm:px-4">
+      <div className="whitespace-nowrap text-[9px] uppercase leading-4 tracking-normal text-blue-200/45">
+        {label}
+      </div>
       <div className="mt-2 text-lg font-semibold text-white">{value}</div>
     </div>
   );
@@ -821,10 +825,10 @@ export default function ArtemisPresalePage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#030712] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.28),transparent_38%),radial-gradient(circle_at_80%_20%,rgba(59,130,246,0.18),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(56,189,248,0.12),transparent_28%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#11377f] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.45),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(59,130,246,0.32),transparent_35%),radial-gradient(circle_at_20%_80%,rgba(147,197,253,0.2),transparent_35%)]" />
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-30"
         style={{
           backgroundImage: 'radial-gradient(white 0.7px, transparent 0.7px)',
           backgroundSize: '28px 28px',
@@ -833,24 +837,23 @@ export default function ArtemisPresalePage() {
 
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-6 md:py-10">
         <header className="mb-8 flex items-center justify-between gap-4 px-0 py-2">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
-              <span className="text-xl font-semibold text-cyan-200">A3</span>
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-400/25 bg-blue-500/10">
+              <Rocket className="h-6 w-6 text-blue-200" />
             </div>
-
-            <div className="leading-tight">
-              <div className="text-xl font-semibold tracking-[0.2em] text-white">
+            <div>
+              <div className="text-xl font-semibold uppercase tracking-[0.18em] text-blue-50">
                 ARTEMIS
               </div>
-              <div className="text-xs tracking-[0.35em] text-blue-300/60">
-                ETHEREUM MAINNET PRESALE
+              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">
+                Lunar coin. mission
               </div>
             </div>
           </div>
 
           <Link
             href="/"
-            className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/10 px-4 text-sm text-blue-100 transition-all duration-200 hover:bg-white/5"
+            className="inline-flex h-12 items-center justify-center rounded-2xl border border-blue-300/30 bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-300 px-5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(59,130,246,0.28)] transition-all duration-200 hover:from-blue-400 hover:via-sky-300 hover:to-cyan-200"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Mission Control
@@ -859,7 +862,7 @@ export default function ArtemisPresalePage() {
 
         <section
           aria-labelledby="presale-heading"
-          className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-[0_0_80px_rgba(37,99,235,0.08)] backdrop-blur-xl md:p-8"
+          className="rounded-[2rem] border border-blue-200/20 bg-slate-950/55 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.48)] backdrop-blur-xl md:p-8"
         >
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
             <div className="w-full lg:w-[42%]">
@@ -890,7 +893,7 @@ export default function ArtemisPresalePage() {
                 />
               </div>
 
-              <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="mt-6 rounded-2xl border border-white/15 bg-slate-950/55 p-4 shadow-[0_12px_28px_rgba(2,6,23,0.22)]">
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-blue-100/60">Total presale progress</span>
                   <span className="font-medium text-white">{totalSoldPercent.toFixed(2)}% sold</span>
@@ -903,7 +906,7 @@ export default function ArtemisPresalePage() {
                 </div>
               </div>
 
-              <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="mt-3 rounded-2xl border border-white/15 bg-slate-950/55 p-4 shadow-[0_12px_28px_rgba(2,6,23,0.22)]">
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-blue-100/60">Current batch progress</span>
                   <span className="font-medium text-white">{batchSoldPercent.toFixed(2)}% sold</span>
@@ -921,7 +924,7 @@ export default function ArtemisPresalePage() {
             </div>
 
             <div className="w-full lg:flex-1">
-              <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+              <div className="rounded-[1.75rem] border border-cyan-200/20 bg-slate-950/65 p-5 shadow-[0_18px_45px_rgba(2,6,23,0.32)]">
                 {!isConnected ? (
                   <div>
                     <Button
@@ -1111,11 +1114,11 @@ export default function ArtemisPresalePage() {
                     <div className="grid grid-cols-2 gap-3">
                       <Button
                         variant="outline"
-                        className="h-12 rounded-2xl font-medium"
+                        className="h-auto min-h-12 min-w-0 rounded-2xl px-3 py-2 font-medium leading-4"
                         onClick={handleManageWallet}
                       >
-                        <Wallet className="mr-2 h-4 w-4" />
-                        Manage
+                        <Wallet className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="text-center">Manage Wallet</span>
                       </Button>
                       <Button
                         variant="outline"
@@ -1137,7 +1140,7 @@ export default function ArtemisPresalePage() {
           </div>
 
           <section aria-labelledby="allocation-heading" className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
-            <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+            <div className="rounded-[1.75rem] border border-white/15 bg-slate-950/55 p-5 shadow-[0_18px_45px_rgba(2,6,23,0.3)]">
               <h2 id="allocation-heading" className="text-xl font-semibold text-white">
                 My Artemis Allocation
               </h2>
@@ -1172,17 +1175,28 @@ export default function ArtemisPresalePage() {
               </div>
             </div>
 
-            <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+            <div className="rounded-[1.75rem] border border-cyan-200/20 bg-slate-950/65 p-5 shadow-[0_18px_45px_rgba(2,6,23,0.32)]">
               <h2 className="text-xl font-semibold text-white">Contract Details</h2>
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-blue-100/55">Presale</span>
-                  <span className="font-medium text-white">{formatAddress(ARTEMIS_CONTRACTS.presale)}</span>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-blue-100/55">Token</span>
-                  <span className="font-medium text-white">{formatAddress(ARTEMIS_CONTRACTS.token)}</span>
-                </div>
+              <div className="mt-4 space-y-4 text-sm">
+                {[
+                  ['Presale contract', ARTEMIS_CONTRACTS.presale],
+                  ['ARTM3 token', ARTEMIS_CONTRACTS.token],
+                  ['Team lock', ARTEMIS_CONTRACTS.teamLock],
+                ].map(([label, contractAddress]) => (
+                  <div key={label} className="rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="text-xs font-medium uppercase tracking-[0.16em] text-blue-100/55">
+                      {label}
+                    </div>
+                    <a
+                      href={`${ARTEMIS_EXPLORER_ADDRESS_BASE}/${contractAddress}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 block break-all font-mono text-xs leading-5 text-cyan-100 hover:text-white hover:underline"
+                    >
+                      {contractAddress}
+                    </a>
+                  </div>
+                ))}
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-blue-100/55">Claims</span>
                   <span className="font-medium text-white">{claimActive ? 'Active' : 'Inactive'}</span>
