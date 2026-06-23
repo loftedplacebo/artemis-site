@@ -62,8 +62,31 @@ function Section({ id, eyebrow, title, children }) {
 }
 
 export const metadata = {
-  title: 'Whitepaper Draft',
+  title: 'Artemis ARTM3 Whitepaper',
   description: 'Artemis ARTM3: a fixed-supply Ethereum coin built for the Artemis III Moon-mission moment and future space commerce.',
+  alternates: {
+    canonical: '/whitepaper',
+  },
+  openGraph: {
+    type: 'article',
+    url: '/whitepaper',
+    title: 'Artemis ARTM3 Whitepaper',
+    description: 'A transparent overview of Artemis ARTM3, its fixed supply, verified Ethereum contracts, tokenomics, and Moon-era community vision.',
+    images: [
+      {
+        url: '/images/calculator/moon-rock.png',
+        width: 1024,
+        height: 1024,
+        alt: 'A glowing Moon rock on a display plinth',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Artemis ARTM3 Whitepaper',
+    description: 'Explore the fixed supply, verified Ethereum contracts, tokenomics, and Moon-era vision behind ARTM3.',
+    images: ['/images/calculator/moon-rock.png'],
+  },
 };
 
 export default function WhitepaperPage() {

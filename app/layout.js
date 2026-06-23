@@ -38,9 +38,10 @@ export const metadata = {
       'Artemis is a fixed-supply Ethereum coin with a verified mainnet presale, staged pricing and a launch aligned with the Artemis III Moon mission.',
     images: [
       {
-        url: `${siteUrl}/og-image.png`,
-        width: 1200,
-        height: 630,
+        url: `${siteUrl}/images/calculator/private-rocket.png`,
+        width: 1024,
+        height: 1024,
+        alt: 'A private rocket launching through a starry sky',
       },
     ],
   },
@@ -50,7 +51,7 @@ export const metadata = {
     title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
     description:
       'Artemis is a fixed-supply Ethereum coin with a verified mainnet presale and ETH, USDT, and USDC payment support.',
-    images: [`${siteUrl}/og-image.png`],
+    images: [`${siteUrl}/images/calculator/private-rocket.png`],
   },
 };
 

@@ -13,6 +13,7 @@ import {
   Send,
   ExternalLink,
   FileText,
+  Calculator,
 } from 'lucide-react';
 import CountdownCard from './components/landing/CountdownCard';
 import {
@@ -173,6 +174,14 @@ export default function ArtemisLandingPage() {
 
           <div className="flex items-center gap-3">
   <ButtonLink
+    href="/calculator"
+    variant="ghost"
+    className="hidden rounded-2xl h-11 px-4 text-sm md:inline-flex"
+  >
+    <Calculator className="mr-2 h-4 w-4" />
+    Calculator
+  </ButtonLink>
+  <ButtonLink
     href="/whitepaper"
     variant="ghost"
     className="hidden rounded-2xl h-11 px-4 text-sm md:inline-flex"
@@ -275,6 +284,10 @@ export default function ArtemisLandingPage() {
               <ButtonLink href="/whitepaper" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
                 <FileText className="mr-2 h-4 w-4" />
                 Whitepaper
+              </ButtonLink>
+              <ButtonLink href="/calculator" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
+                <Calculator className="mr-2 h-4 w-4" />
+                Calculator
               </ButtonLink>
             </div>
 
