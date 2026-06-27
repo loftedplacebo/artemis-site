@@ -423,7 +423,7 @@ export default function ArtemisPresalePage() {
     if (claimActive) return 'Buying closed - claims active';
     if (parsedPaymentAmount <= 0n) return 'Enter contribution amount';
     if (approvalNeeded) return `Approve ${selectedAsset.symbol}`;
-    return `Buy ARTM3 with ${selectedAsset.symbol}`;
+    return `Buy ARMN with ${selectedAsset.symbol}`;
   }, [
     approvalNeeded,
     claimActive,
@@ -556,12 +556,12 @@ export default function ArtemisPresalePage() {
     if (!isTransactionConfirmed || !activeTxHash || !txPhase) return;
 
     if (txPhase === 'approve') {
-      setSuccessMessage(`${selectedAsset.symbol} approval confirmed. You can now buy ARTM3.`);
+      setSuccessMessage(`${selectedAsset.symbol} approval confirmed. You can now buy ARMN.`);
       allowanceRead.refetch();
     }
 
     if (txPhase === 'purchase') {
-      setSuccessMessage(`Purchase confirmed. Your ARTM3 allocation has been refreshed.`);
+      setSuccessMessage(`Purchase confirmed. Your ARMN allocation has been refreshed.`);
       setShowEmailCapture(true);
       setPaymentAmount('');
       buyerDashboardRead.refetch();
@@ -761,7 +761,7 @@ export default function ArtemisPresalePage() {
     }
 
     if (!claimActive || buyerClaimable <= 0n) {
-      setActionMessage('There are no ARTM3 tokens claimable for this wallet yet.');
+      setActionMessage('There are no ARMN tokens claimable for this wallet yet.');
       return;
     }
 
@@ -843,10 +843,10 @@ export default function ArtemisPresalePage() {
             </div>
             <div>
               <div className="text-xl font-semibold uppercase tracking-[0.18em] text-blue-50">
-                ARTEMIS
+                ARTEMIS MOON
               </div>
               <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">
-                Lunar coin. mission
+                Artemis Moon Network
               </div>
             </div>
           </div>
@@ -874,18 +874,18 @@ export default function ArtemisPresalePage() {
                 id="presale-heading"
                 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-5xl"
               >
-                Secure your ARTM3 allocation
+                Secure your ARMN allocation
               </h1>
               <div className="mt-4 text-xl font-medium text-cyan-300 md:text-2xl">
                 Batch {Number(currentBatchId) + 1} of {Number(batchCount || 6n)} - {formatUsd(currentPriceUsd)}
               </div>
               <p className="mt-4 text-sm text-blue-100/65 md:text-base">
-                Buy ARTM3 through the deployed Ethereum mainnet presale contract using ETH, USDC, or USDT.
+                Buy ARMN through the deployed Ethereum mainnet presale contract using ETH, USDC, or USDT.
               </p>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <Stat label="Total sold" value={`${formatTokenAmount(totalTokensSold, 0)} ARTM3`} />
-                <Stat label="Remaining" value={`${formatTokenAmount(totalTokensRemaining, 0)} ARTM3`} />
+                <Stat label="Total sold" value={`${formatTokenAmount(totalTokensSold, 0)} ARMN`} />
+                <Stat label="Remaining" value={`${formatTokenAmount(totalTokensRemaining, 0)} ARMN`} />
                 <Stat label="Raised" value={formatUsd(totalUsdRaised, 0)} />
                 <Stat
                   label="Status"
@@ -918,7 +918,7 @@ export default function ArtemisPresalePage() {
                   />
                 </div>
                 <div className="mt-2 text-xs text-blue-100/45">
-                  {formatTokenAmount(batchTokensRemaining, 0)} ARTM3 remaining in this batch
+                  {formatTokenAmount(batchTokensRemaining, 0)} ARMN remaining in this batch
                 </div>
               </div>
             </div>
@@ -1020,7 +1020,7 @@ export default function ArtemisPresalePage() {
                       </div>
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <div className="text-3xl font-semibold text-white">
-                          {formatTokenAmount(quotedTokens)} ARTM3
+                          {formatTokenAmount(quotedTokens)} ARMN
                         </div>
                         <div className="text-sm text-blue-100/55">
                           at {formatUsd(currentPriceUsd)}
@@ -1142,12 +1142,12 @@ export default function ArtemisPresalePage() {
           <section aria-labelledby="allocation-heading" className="grid gap-5 lg:grid-cols-[1fr_0.8fr]">
             <div className="rounded-[1.75rem] border border-white/15 bg-slate-950/55 p-5 shadow-[0_18px_45px_rgba(2,6,23,0.3)]">
               <h2 id="allocation-heading" className="text-xl font-semibold text-white">
-                My Artemis Allocation
+                My Artemis Moon Allocation
               </h2>
               <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Stat label="Purchased" value={`${formatTokenAmount(buyerTokensAllocated)} ARTM3`} />
+                <Stat label="Purchased" value={`${formatTokenAmount(buyerTokensAllocated)} ARMN`} />
                 <Stat label="Contributed" value={formatUsd(buyerUsdSpent)} />
-                <Stat label="Claimed" value={`${formatTokenAmount(buyerTokensClaimed)} ARTM3`} />
+                <Stat label="Claimed" value={`${formatTokenAmount(buyerTokensClaimed)} ARMN`} />
                 <Stat label="Purchases" value={String(buyerPurchaseCount)} />
               </div>
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -1157,7 +1157,7 @@ export default function ArtemisPresalePage() {
                       Claimable
                     </div>
                     <div className="mt-2 text-2xl font-semibold text-white">
-                      {formatTokenAmount(buyerClaimable)} ARTM3
+                      {formatTokenAmount(buyerClaimable)} ARMN
                     </div>
                   </div>
                   <Button
@@ -1169,7 +1169,7 @@ export default function ArtemisPresalePage() {
                     {txPhase === 'claim' && isConfirmingTransaction ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
-                    Claim ARTM3
+                    Claim ARMN
                   </Button>
                 </div>
               </div>
@@ -1180,7 +1180,7 @@ export default function ArtemisPresalePage() {
               <div className="mt-4 space-y-4 text-sm">
                 {[
                   ['Presale contract', ARTEMIS_CONTRACTS.presale],
-                  ['ARTM3 token', ARTEMIS_CONTRACTS.token],
+                  ['ARMN token', ARTEMIS_CONTRACTS.token],
                   ['Team lock', ARTEMIS_CONTRACTS.teamLock],
                 ].map(([label, contractAddress]) => (
                   <div key={label} className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -1264,7 +1264,7 @@ export default function ArtemisPresalePage() {
                       className="mt-1 h-4 w-4 accent-cyan-300"
                     />
                     <span>
-                      I agree to receive Artemis launch updates, claim reminders, and project news
+                      I agree to receive Artemis Moon launch updates, claim reminders, and project news
                       for this wallet.
                     </span>
                   </label>

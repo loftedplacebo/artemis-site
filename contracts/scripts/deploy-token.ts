@@ -1,5 +1,4 @@
 import { ethers, run } from "hardhat";
-import { DEPLOYMENT_PARAMS } from "./params";
 
 function requireAddress(name: string): string {
   const value = process.env[name];
@@ -29,47 +28,41 @@ async function maybeVerify(address: string, args: readonly unknown[]) {
 
 async function main() {
   const treasury = requireAddress("TREASURY_WALLET");
-  const usdt = requireAddress("USDT_ADDRESS");
-  const usdc = requireAddress("USDC_ADDRESS");
-  const ethUsdFeed = requireAddress("ETH_USD_PRICE_FEED");
-
   const [deployer] = await ethers.getSigners();
-  console.log("Deploying V2 with:", deployer.address);
+
+  console.log("Deploying ArtemisMoonToken with:", deployer.address);
   console.log("Treasury:", treasury);
-  console.log("ETH/USD feed:", ethUsdFeed);
 
   const Token = await ethers.getContractFactory("ArtemisMoonToken");
+  const deploymentTx = await Token.getDeployTransaction(treasury);
+  const estimatedGas = await deployer.estimateGas(deploymentTx);
+  const feeData = await ethers.provider.getFeeData();
+  const maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice;
+
+  console.log("Estimated gas:", estimatedGas.toString());
+  if (maxFeePerGas) {
+    console.log("Max fee per gas:", ethers.formatUnits(maxFeePerGas, "gwei"), "gwei");
+    console.log("Estimated max fee:", ethers.formatEther(estimatedGas * maxFeePerGas), "ETH");
+  }
+
   const token = await Token.deploy(treasury);
+  const tx = token.deploymentTransaction();
+  console.log("Submission tx:", tx?.hash);
+
   await token.waitForDeployment();
   const tokenAddress = await token.getAddress();
 
   console.log("ArtemisMoonToken deployed:", tokenAddress);
-
-  const presaleArgs = [
-    tokenAddress,
-    usdt,
-    usdc,
-    treasury,
-    ethUsdFeed,
-    DEPLOYMENT_PARAMS.chainlink.maxPriceFeedAge,
-    DEPLOYMENT_PARAMS.presale.presaleTokenCap,
-    DEPLOYMENT_PARAMS.presale.minimumPurchaseUsd,
-    DEPLOYMENT_PARAMS.presale.batchCaps,
-    DEPLOYMENT_PARAMS.presale.batchPricesUsd,
-  ] as const;
-
-  const Presale = await ethers.getContractFactory("ArtemisMoonPresaleV2");
-  const presale = await Presale.deploy(...presaleArgs);
-  await presale.waitForDeployment();
-  const presaleAddress = await presale.getAddress();
-
-  console.log("ArtemisMoonPresaleV2 deployed:", presaleAddress);
+  console.log("Name:", await token.name());
+  console.log("Symbol:", await token.symbol());
+  console.log("Decimals:", await token.decimals());
+  console.log("Total supply:", ethers.formatUnits(await token.totalSupply(), 18));
+  console.log("Treasury balance:", ethers.formatUnits(await token.balanceOf(treasury), 18));
 
   console.log("Waiting before verification...");
   await new Promise((resolve) => setTimeout(resolve, 15000));
 
   await maybeVerify(tokenAddress, [treasury]);
-  await maybeVerify(presaleAddress, presaleArgs as unknown as unknown[]);
 }
 
 main().catch((error) => {

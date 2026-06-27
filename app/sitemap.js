@@ -1,4 +1,4 @@
-const siteUrl = 'https://artemis3.io';
+const siteUrl = 'https://artemismoon.io';
 const lastModified = new Date('2026-06-23');
 
 export default function sitemap() {

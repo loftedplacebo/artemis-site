@@ -1,24 +1,24 @@
 import './globals.css';
 import Providers from './providers';
 
-const siteUrl = 'https://artemis3.io';
+const siteUrl = 'https://artemismoon.io';
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
-    default: 'Artemis ($ARTM3) | Ethereum Coin Presale',
-    template: '%s | Artemis3.io',
+    default: 'Artemis Moon ($ARMN) | Ethereum Coin Presale',
+    template: '%s | artemismoon.io',
   },
 
   description:
-    'Artemis ($ARTM3) is an Ethereum-based coin with a fixed 10M supply, a verified mainnet presale, and staged ETH, USDT, and USDC payment support.',
+    'Artemis Moon ($ARMN) is a mission-agnostic lunar token for the Artemis era, with a fixed 10M supply and ETH, USDT, and USDC presale support.',
 
   verification: {
     google: '8-TC18_G7qkTSam-Ccvk0CudU68lL4Qv4cu2na_VVM8',
   },
 
-  applicationName: 'Artemis',
+  applicationName: 'Artemis Moon',
 
   alternates: {
     canonical: '/',
@@ -32,10 +32,10 @@ export const metadata = {
   openGraph: {
     type: 'website',
     url: siteUrl,
-    siteName: 'Artemis',
-    title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
+    siteName: 'Artemis Moon',
+    title: 'Artemis Moon - $ARMN',
     description:
-      'Artemis is a fixed-supply Ethereum coin with a verified mainnet presale, staged pricing and a launch aligned with the Artemis III Moon mission.',
+      'A mission-agnostic lunar token for the Artemis era.',
     images: [
       {
         url: `${siteUrl}/images/calculator/private-rocket.png`,
@@ -48,9 +48,9 @@ export const metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Artemis ($ARTM3) | Ethereum Coin Presale',
+    title: 'Artemis Moon - $ARMN',
     description:
-      'Artemis is a fixed-supply Ethereum coin with a verified mainnet presale and ETH, USDT, and USDC payment support.',
+      'A community token for the Artemis era of lunar exploration.',
     images: [`${siteUrl}/images/calculator/private-rocket.png`],
   },
 };
@@ -71,15 +71,15 @@ export default function RootLayout({ children }) {
               "mainEntity": [
                 {
                   "@type": "Question",
-                  "name": "What is Artemis?",
+                  "name": "What is Artemis Moon?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Artemis is an Ethereum-based coin with a fixed supply of 10,000,000 ARTM3 tokens. The project is designed around the Artemis III Moon mission, combining a real-world narrative with a structured crypto presale and exchange launch strategy."
+                    "text": "Artemis Moon is an Ethereum-based coin with a fixed supply of 10,000,000 ARMN tokens. It is designed as a mission-agnostic lunar token for the wider Artemis era of lunar exploration."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "How can I buy $ARTM3?",
+                  "name": "How can I buy $ARMN?",
                   "acceptedAnswer": {
                     "@type": "Answer",
                     "text": "When the presale is activated, buyers can connect a crypto wallet and pay with ETH, USDT or USDC on Ethereum mainnet."
@@ -87,18 +87,18 @@ export default function RootLayout({ children }) {
                 },
                 {
                   "@type": "Question",
-                  "name": "Which network does Artemis use?",
+                  "name": "Which network does Artemis Moon use?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Artemis is built on the Ethereum network, allowing buyers to use widely supported wallets such as MetaMask and WalletConnect."
+                    "text": "Artemis Moon is built on the Ethereum network, allowing buyers to use widely supported wallets such as MetaMask and WalletConnect."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "What is the total supply of $ARTM3?",
+                  "name": "What is the total supply of $ARMN?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "The total supply is fixed at 10,000,000 ARTM3 tokens, with no inflation."
+                    "text": "The total supply is fixed at 10,000,000 ARMN tokens, with no inflation."
                   }
                 },
                 {
@@ -114,7 +114,7 @@ export default function RootLayout({ children }) {
                   "name": "When does the presale end?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "The Artemis presale is scheduled to end on 31 March 2027, after which final allocations will be locked ahead of the launch."
+                    "text": "The Artemis Moon presale is scheduled to end on 31 March 2027, after which final allocations will be locked ahead of the launch."
                   }
                 },
                 {
@@ -122,15 +122,15 @@ export default function RootLayout({ children }) {
                   "name": "What is the expected launch price?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "The target listing price for Artemis is $1.00, aligned with the broader launch strategy and exchange ambitions."
+                    "text": "The target listing price for Artemis Moon is $1.00, aligned with the broader launch strategy and exchange ambitions."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "Will Artemis be listed on exchanges?",
+                  "name": "Will Artemis Moon be listed on exchanges?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "The project is targeting a Tier 1 exchange listing, with timing aligned to the Artemis III mission for maximum visibility."
+                    "text": "The project is targeting a Tier 1 exchange listing, with timing aligned to wider Artemis-era lunar exploration attention. This is an objective, not a guarantee."
                   }
                 },
                 {
@@ -138,7 +138,7 @@ export default function RootLayout({ children }) {
                   "name": "Is liquidity locked?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "No liquidity position has been created yet. Artemis intends to publish any future liquidity arrangement and lock evidence before trading begins."
+                    "text": "No liquidity position has been created yet. Artemis Moon intends to publish any future liquidity arrangement and lock evidence before trading begins."
                   }
                 },
                 {
@@ -146,7 +146,7 @@ export default function RootLayout({ children }) {
                   "name": "Do I need a crypto wallet to participate?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Yes, you need a compatible crypto wallet such as MetaMask to connect and purchase ARTM3 during the presale."
+                    "text": "Yes, you need a compatible crypto wallet such as MetaMask to connect and purchase ARMN during the presale."
                   }
                 }
               ]

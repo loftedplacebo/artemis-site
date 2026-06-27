@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { deployFixture, BATCH_CAPS, BATCH_PRICES, MIN_PURCHASE_USD } from "./helpers";
 
-describe("ArtemisPresale batch transitions", function () {
+describe("ArtemisMoonPresale batch transitions", function () {
   it("fills batch 1 exactly and moves to batch 2", async function () {
     const { buyer1, presale, usdt } = await deployFixture();
 

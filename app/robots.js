@@ -1,4 +1,4 @@
-const siteUrl = 'https://artemis3.io';
+const siteUrl = 'https://artemismoon.io';
 
 export default function robots() {
   const isProduction = process.env.VERCEL_ENV === 'production';

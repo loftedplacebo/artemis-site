@@ -1,18 +1,18 @@
 import CalculatorClient from './CalculatorClient';
 
 export const metadata = {
-  title: 'ARTM3 Moonshot Calculator',
+  title: 'Artemis Moon ARMN Calculator',
   description:
-    'Explore illustrative ARTM3 presale batch and future-price scenarios. This calculator is for information and entertainment only.',
+    'Explore illustrative Artemis Moon ARMN presale batch and future-price scenarios. This calculator is for information and entertainment only.',
   alternates: {
     canonical: '/calculator',
   },
   openGraph: {
     type: 'website',
     url: '/calculator',
-    title: 'ARTM3 Moonshot Calculator',
+    title: 'Artemis Moon ARMN Calculator',
     description:
-      'Explore illustrative ARTM3 presale batch and future-price scenarios from the $1 target to the $10 Moon scenario.',
+      'Explore illustrative Artemis Moon ARMN presale batch and future-price scenarios from the $1 target to the $10 Moon scenario.',
     images: [
       {
         url: '/images/calculator/private-rocket.png',
@@ -24,9 +24,9 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ARTM3 Moonshot Calculator',
+    title: 'Artemis Moon ARMN Calculator',
     description:
-      'Explore illustrative ARTM3 presale batch and future-price scenarios from the $1 target to the $10 Moon scenario.',
+      'Explore illustrative Artemis Moon ARMN presale batch and future-price scenarios from the $1 target to the $10 Moon scenario.',
     images: ['/images/calculator/private-rocket.png'],
   },
 };

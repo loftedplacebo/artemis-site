@@ -35,13 +35,13 @@ export async function deployFixture() {
   await usdt.waitForDeployment();
   await usdc.waitForDeployment();
 
-  const ArtemisToken = await ethers.getContractFactory("ArtemisToken");
-  const artm3 = await ArtemisToken.deploy(treasury.address);
-  await artm3.waitForDeployment();
+  const ArtemisMoonToken = await ethers.getContractFactory("ArtemisMoonToken");
+  const armn = await ArtemisMoonToken.deploy(treasury.address);
+  await armn.waitForDeployment();
 
-  const ArtemisPresale = await ethers.getContractFactory("ArtemisPresale");
-  const presale = await ArtemisPresale.deploy(
-    await artm3.getAddress(),
+  const ArtemisMoonPresale = await ethers.getContractFactory("ArtemisMoonPresale");
+  const presale = await ArtemisMoonPresale.deploy(
+    await armn.getAddress(),
     await usdt.getAddress(),
     await usdc.getAddress(),
     treasury.address,
@@ -63,7 +63,7 @@ export async function deployFixture() {
     treasury,
     buyer1,
     buyer2,
-    artm3,
+    armn,
     usdt,
     usdc,
     presale
@@ -92,13 +92,13 @@ export async function deployFixtureV2(overrides: {
   const ethUsdFeed = await MockV3Aggregator.deploy(8, ETH_USD_PRICE);
   await ethUsdFeed.waitForDeployment();
 
-  const ArtemisToken = await ethers.getContractFactory("ArtemisToken");
-  const artm3 = await ArtemisToken.deploy(treasury.address);
-  await artm3.waitForDeployment();
+  const ArtemisMoonToken = await ethers.getContractFactory("ArtemisMoonToken");
+  const armn = await ArtemisMoonToken.deploy(treasury.address);
+  await armn.waitForDeployment();
 
-  const ArtemisPresaleV2 = await ethers.getContractFactory("ArtemisPresaleV2");
-  const presale = await ArtemisPresaleV2.deploy(
-    await artm3.getAddress(),
+  const ArtemisMoonPresaleV2 = await ethers.getContractFactory("ArtemisMoonPresaleV2");
+  const presale = await ArtemisMoonPresaleV2.deploy(
+    await armn.getAddress(),
     await usdt.getAddress(),
     await usdc.getAddress(),
     treasury.address,
@@ -122,7 +122,7 @@ export async function deployFixtureV2(overrides: {
     treasury,
     buyer1,
     buyer2,
-    artm3,
+    armn,
     usdt,
     usdc,
     ethUsdFeed,

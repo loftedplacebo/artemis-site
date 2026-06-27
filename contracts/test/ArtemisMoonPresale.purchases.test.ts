@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { deployFixture, MIN_PURCHASE_USD } from "./helpers";
 
-describe("ArtemisPresale purchases", function () {
+describe("ArtemisMoonPresale purchases", function () {
   it("buys with USDT and records purchase history", async function () {
     const { buyer1, presale, usdt } = await deployFixture();
 
@@ -55,14 +55,14 @@ describe("ArtemisPresale purchases", function () {
   });
 
   it("blocks buying once claims are active", async function () {
-    const { buyer1, presale, usdt, artm3, treasury } = await deployFixture();
+    const { buyer1, presale, usdt, armn, treasury } = await deployFixture();
 
     await presale.setSaleActive(true);
     await usdt.connect(buyer1).approve(await presale.getAddress(), MIN_PURCHASE_USD);
     await presale.connect(buyer1).buyWithUSDT(MIN_PURCHASE_USD);
 
     const obligation = await presale.getRequiredTokenFunding();
-    await artm3.connect(treasury).transfer(await presale.getAddress(), obligation);
+    await armn.connect(treasury).transfer(await presale.getAddress(), obligation);
 
     await presale.setClaimActive(true);
 

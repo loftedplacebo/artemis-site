@@ -1,7 +1,7 @@
 export const DEPLOYMENT_PARAMS = {
   token: {
-    name: "Artemis",
-    symbol: "ARTM3"
+    name: "Artemis Moon",
+    symbol: "ARMN"
   },
   chainlink: {
     maxPriceFeedAge: "86400"

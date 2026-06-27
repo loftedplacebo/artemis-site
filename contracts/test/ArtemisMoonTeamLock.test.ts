@@ -1,20 +1,20 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-describe("ArtemisTeamLock", function () {
+describe("ArtemisMoonTeamLock", function () {
   const TEAM_ALLOCATION = ethers.parseUnits("500000", 18);
   const ONE_YEAR = 365 * 24 * 60 * 60;
 
   async function deployFixture() {
     const [deployer, treasury, beneficiary, caller] = await ethers.getSigners();
-    const ArtemisToken = await ethers.getContractFactory("ArtemisToken");
-    const token = await ArtemisToken.deploy(treasury.address);
+    const ArtemisMoonToken = await ethers.getContractFactory("ArtemisMoonToken");
+    const token = await ArtemisMoonToken.deploy(treasury.address);
     await token.waitForDeployment();
 
     const latestBlock = await ethers.provider.getBlock("latest");
     const unlockTime = BigInt((latestBlock?.timestamp || 0) + ONE_YEAR);
-    const ArtemisTeamLock = await ethers.getContractFactory("ArtemisTeamLock");
-    const teamLock = await ArtemisTeamLock.deploy(
+    const ArtemisMoonTeamLock = await ethers.getContractFactory("ArtemisMoonTeamLock");
+    const teamLock = await ArtemisMoonTeamLock.deploy(
       await token.getAddress(),
       beneficiary.address,
       unlockTime
@@ -29,7 +29,7 @@ describe("ArtemisTeamLock", function () {
   it("stores the token, beneficiary, and immutable unlock time", async function () {
     const { beneficiary, teamLock, token, unlockTime } = await deployFixture();
 
-    expect(await teamLock.artm3()).to.equal(await token.getAddress());
+    expect(await teamLock.armn()).to.equal(await token.getAddress());
     expect(await teamLock.beneficiary()).to.equal(beneficiary.address);
     expect(await teamLock.unlockTime()).to.equal(unlockTime);
   });
@@ -57,18 +57,18 @@ describe("ArtemisTeamLock", function () {
 
   it("rejects invalid constructor values", async function () {
     const [, , beneficiary] = await ethers.getSigners();
-    const ArtemisTeamLock = await ethers.getContractFactory("ArtemisTeamLock");
+    const ArtemisMoonTeamLock = await ethers.getContractFactory("ArtemisMoonTeamLock");
     const latestBlock = await ethers.provider.getBlock("latest");
     const futureUnlockTime = BigInt((latestBlock?.timestamp || 0) + ONE_YEAR);
 
     await expect(
-      ArtemisTeamLock.deploy(ethers.ZeroAddress, beneficiary.address, futureUnlockTime)
-    ).to.be.revertedWith("Invalid ARTM3");
+      ArtemisMoonTeamLock.deploy(ethers.ZeroAddress, beneficiary.address, futureUnlockTime)
+    ).to.be.revertedWith("Invalid ARMN");
     await expect(
-      ArtemisTeamLock.deploy(beneficiary.address, ethers.ZeroAddress, futureUnlockTime)
+      ArtemisMoonTeamLock.deploy(beneficiary.address, ethers.ZeroAddress, futureUnlockTime)
     ).to.be.revertedWith("Invalid beneficiary");
     await expect(
-      ArtemisTeamLock.deploy(beneficiary.address, beneficiary.address, 1)
+      ArtemisMoonTeamLock.deploy(beneficiary.address, beneficiary.address, 1)
     ).to.be.revertedWith("Unlock must be future");
   });
 });

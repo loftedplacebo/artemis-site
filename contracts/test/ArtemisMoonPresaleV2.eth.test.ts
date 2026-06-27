@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { deployFixtureV2, MIN_PURCHASE_USD, MAX_PRICE_FEED_AGE } from "./helpers";
 
-describe("ArtemisPresaleV2 ETH purchases", function () {
+describe("ArtemisMoonPresaleV2 ETH purchases", function () {
   it("stores Chainlink feed configuration", async function () {
     const { presale, ethUsdFeed } = await deployFixtureV2();
 
@@ -143,13 +143,13 @@ describe("ArtemisPresaleV2 ETH purchases", function () {
   });
 
   it("allows claims after ETH purchases when funded", async function () {
-    const { buyer1, presale, artm3, treasury } = await deployFixtureV2();
+    const { buyer1, presale, armn, treasury } = await deployFixtureV2();
 
     await presale.setSaleActive(true);
     await presale.connect(buyer1).buyWithETH({ value: ethers.parseEther("0.04") });
 
     const obligation = await presale.getRequiredTokenFunding();
-    await artm3.connect(treasury).transfer(await presale.getAddress(), obligation);
+    await armn.connect(treasury).transfer(await presale.getAddress(), obligation);
 
     await presale.setClaimActive(true);
     await expect(presale.connect(buyer1).claimTokens()).to.emit(presale, "TokensClaimed");
@@ -157,13 +157,13 @@ describe("ArtemisPresaleV2 ETH purchases", function () {
   });
 
   it("continues to block buys once claims are active", async function () {
-    const { buyer1, presale, artm3, treasury } = await deployFixtureV2();
+    const { buyer1, presale, armn, treasury } = await deployFixtureV2();
 
     await presale.setSaleActive(true);
     await presale.connect(buyer1).buyWithETH({ value: ethers.parseEther("0.04") });
 
     const obligation = await presale.getRequiredTokenFunding();
-    await artm3.connect(treasury).transfer(await presale.getAddress(), obligation);
+    await armn.connect(treasury).transfer(await presale.getAddress(), obligation);
     await presale.setClaimActive(true);
 
     await expect(

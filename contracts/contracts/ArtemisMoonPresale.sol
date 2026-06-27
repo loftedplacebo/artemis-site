@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -8,36 +9,29 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-interface AggregatorV3Interface {
-    function decimals() external view returns (uint8);
 
-    function latestRoundData()
-        external
-        view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
-}
 
 /**
- * ArtemisPresaleV2
- * Adds ETH support to the V1 stablecoin presale.
- * ETH purchases are priced onchain through a Chainlink ETH/USD feed.
+ * ArtemisMoonPresale
+ * V1 scope:
+ * - Accepts USDT and USDC
+ * - USD-priced batches
+ * - Deferred claim model
+ * - Tracks buyer purchase history and allocations
+ * - Includes frontend-friendly reporting getters for wallet dashboards
+ * - Requires full ARMN claim funding before claims can be enabled
+ * - Keeps raised funds and sale-token recovery paths separated
+ * - No ETH support in V1
  */
-contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
+contract ArtemisMoonPresale is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 public constant USD_DECIMALS = 1e6;
     uint256 public constant TOKEN_DECIMALS = 1e18;
 
-    IERC20 public immutable artm3;
+    IERC20 public immutable armn;
     IERC20 public immutable usdt;
     IERC20 public immutable usdc;
-    AggregatorV3Interface public immutable ethUsdPriceFeed;
 
     address public treasury;
 
@@ -48,22 +42,20 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
     uint256 public totalTokensSold;
     uint256 public totalTokensClaimed;
     uint256 public totalUsdRaised;
-    uint256 public totalEthRaised;
     uint256 public totalPurchases;
     uint256 public minimumPurchaseUsd;
     uint256 public currentBatchId;
-    uint256 public maxPriceFeedAge;
 
     struct Batch {
-        uint256 tokenCap;
-        uint256 tokensSold;
-        uint256 priceUsd;
+        uint256 tokenCap;      // 18 decimals
+        uint256 tokensSold;    // 18 decimals
+        uint256 priceUsd;      // 6 decimals, e.g. $0.25 = 250000
     }
 
     struct Buyer {
-        uint256 totalUsdSpent;
-        uint256 totalTokensAllocated;
-        uint256 totalTokensClaimed;
+        uint256 totalUsdSpent;        // 6 decimals
+        uint256 totalTokensAllocated; // 18 decimals
+        uint256 totalTokensClaimed;   // 18 decimals
         uint256 purchaseCount;
     }
 
@@ -71,17 +63,17 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         uint256 id;
         address buyer;
         address paymentToken;
-        uint256 paymentAmount;
-        uint256 usdValue;
-        uint256 tokensAllocated;
+        uint256 paymentAmount;     // payment token native decimals, assumed 6 for USDT/USDC
+        uint256 usdValue;          // 6 decimals
+        uint256 tokensAllocated;   // 18 decimals
         uint256 timestamp;
         uint256 startBatchId;
         uint256 endBatchId;
     }
 
     struct QuoteResult {
-        uint256 usdUsed;
-        uint256 tokensAllocated;
+        uint256 usdUsed;           // 6 decimals
+        uint256 tokensAllocated;   // 18 decimals
         uint256 startBatchId;
         uint256 endBatchId;
     }
@@ -109,30 +101,24 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
     event ClaimStatusUpdated(bool claimActive);
     event TreasuryUpdated(address indexed oldTreasury, address indexed newTreasury);
     event FundsWithdrawn(address indexed token, address indexed to, uint256 amount);
-    event EthWithdrawn(address indexed to, uint256 amount);
     event MinimumPurchaseUpdated(uint256 oldAmount, uint256 newAmount);
-    event MaxPriceFeedAgeUpdated(uint256 oldAge, uint256 newAge);
     event SaleTokenFundingReceived(address indexed from, uint256 amount);
     event ClaimFundingValidated(uint256 obligation, uint256 contractBalance);
 
     constructor(
-        address _artm3,
+        address _armn,
         address _usdt,
         address _usdc,
         address _treasury,
-        address _ethUsdPriceFeed,
-        uint256 _maxPriceFeedAge,
         uint256 _presaleTokenCap,
         uint256 _minimumPurchaseUsd,
         uint256[] memory _batchCaps,
         uint256[] memory _batchPricesUsd
     ) Ownable(msg.sender) {
-        require(_artm3 != address(0), "Invalid ARTM3");
+        require(_armn != address(0), "Invalid ARMN");
         require(_usdt != address(0), "Invalid USDT");
         require(_usdc != address(0), "Invalid USDC");
         require(_treasury != address(0), "Invalid treasury");
-        require(_ethUsdPriceFeed != address(0), "Invalid ETH/USD feed");
-        require(_maxPriceFeedAge > 0, "Invalid feed age");
         require(_presaleTokenCap > 0, "Invalid presale cap");
         require(IERC20Metadata(_usdt).decimals() == 6, "USDT must have 6 decimals");
         require(IERC20Metadata(_usdc).decimals() == 6, "USDC must have 6 decimals");
@@ -140,12 +126,10 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         require(_batchCaps.length > 0, "No batches");
         require(_batchCaps.length == _batchPricesUsd.length, "Batch array mismatch");
 
-        artm3 = IERC20(_artm3);
+        armn = IERC20(_armn);
         usdt = IERC20(_usdt);
         usdc = IERC20(_usdc);
         treasury = _treasury;
-        ethUsdPriceFeed = AggregatorV3Interface(_ethUsdPriceFeed);
-        maxPriceFeedAge = _maxPriceFeedAge;
         presaleTokenCap = _presaleTokenCap;
         minimumPurchaseUsd = _minimumPurchaseUsd;
 
@@ -170,25 +154,16 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         require(capSum == _presaleTokenCap, "Batch caps must equal presale cap");
     }
 
-    receive() external payable {
-        revert("Use buyWithETH");
-    }
-
-    function buyWithETH() external payable nonReentrant whenNotPaused {
-        require(msg.value > 0, "Zero ETH");
-        uint256 usdValue = quoteEthUsdValue(msg.value);
-        _buy(address(0), msg.value, usdValue);
-        totalEthRaised += msg.value;
-    }
+    // ------------------------------
+    // User purchase functions
+    // ------------------------------
 
     function buyWithUSDT(uint256 amount) external nonReentrant whenNotPaused {
-        IERC20(usdt).safeTransferFrom(msg.sender, address(this), amount);
-        _buy(address(usdt), amount, amount);
+        _buy(address(usdt), amount);
     }
 
     function buyWithUSDC(uint256 amount) external nonReentrant whenNotPaused {
-        IERC20(usdc).safeTransferFrom(msg.sender, address(this), amount);
-        _buy(address(usdc), amount, amount);
+        _buy(address(usdc), amount);
     }
 
     function claimTokens() external nonReentrant whenNotPaused {
@@ -196,54 +171,19 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
 
         uint256 claimable = getClaimableAmount(msg.sender);
         require(claimable > 0, "Nothing to claim");
-        require(artm3.balanceOf(address(this)) >= claimable, "Insufficient ARTM3 in contract");
+        require(armn.balanceOf(address(this)) >= claimable, "Insufficient ARMN in contract");
 
         buyers[msg.sender].totalTokensClaimed += claimable;
         totalTokensClaimed += claimable;
 
-        artm3.safeTransfer(msg.sender, claimable);
+        armn.safeTransfer(msg.sender, claimable);
 
         emit TokensClaimed(msg.sender, claimable, block.timestamp);
     }
 
-    function getEthUsdPrice() public view returns (uint256) {
-        (uint80 roundId, int256 answer,, uint256 updatedAt, uint80 answeredInRound) =
-            ethUsdPriceFeed.latestRoundData();
-
-        require(answer > 0, "Invalid ETH/USD price");
-        require(updatedAt > 0, "Incomplete ETH/USD round");
-        require(answeredInRound >= roundId, "Stale ETH/USD round");
-        require(block.timestamp - updatedAt <= maxPriceFeedAge, "Stale ETH/USD price");
-
-        uint8 decimals = ethUsdPriceFeed.decimals();
-        uint256 price = uint256(answer);
-
-        if (decimals > 6) {
-            return price / (10 ** (decimals - 6));
-        }
-
-        if (decimals < 6) {
-            return price * (10 ** (6 - decimals));
-        }
-
-        return price;
-    }
-
-    function quoteEthUsdValue(uint256 ethAmountWei) public view returns (uint256) {
-        return (ethAmountWei * getEthUsdPrice()) / TOKEN_DECIMALS;
-    }
-
-    function quoteForETH(uint256 ethAmountWei) external view returns (QuoteResult memory) {
-        return _quoteTokensForUsd(quoteEthUsdValue(ethAmountWei));
-    }
-
-    function quoteForUSDT(uint256 amount) external view returns (QuoteResult memory) {
-        return _quoteTokensForUsd(amount);
-    }
-
-    function quoteForUSDC(uint256 amount) external view returns (QuoteResult memory) {
-        return _quoteTokensForUsd(amount);
-    }
+    // ------------------------------
+    // Read functions
+    // ------------------------------
 
     function getBatchCount() external view returns (uint256) {
         return batches.length;
@@ -368,6 +308,14 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         );
     }
 
+    function quoteForUSDT(uint256 amount) external view returns (QuoteResult memory) {
+        return _quoteTokensForUsd(amount);
+    }
+
+    function quoteForUSDC(uint256 amount) external view returns (QuoteResult memory) {
+        return _quoteTokensForUsd(amount);
+    }
+
     function getRequiredTokenFunding() public view returns (uint256) {
         return totalTokensSold - totalTokensClaimed;
     }
@@ -382,12 +330,16 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
             bool sufficientlyFunded
         )
     {
-        uint256 balance = artm3.balanceOf(address(this));
+        uint256 balance = armn.balanceOf(address(this));
         uint256 obligation = getRequiredTokenFunding();
         uint256 excess = balance > obligation ? balance - obligation : 0;
 
         return (balance, obligation, excess, balance >= obligation);
     }
+
+    // ------------------------------
+    // Admin functions
+    // ------------------------------
 
     function setSaleActive(bool active) external onlyOwner {
         saleActive = active;
@@ -397,8 +349,8 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
     function setClaimActive(bool active) external onlyOwner {
         if (active) {
             uint256 obligation = getRequiredTokenFunding();
-            uint256 balance = artm3.balanceOf(address(this));
-            require(balance >= obligation, "Insufficient ARTM3 funding for claims");
+            uint256 balance = armn.balanceOf(address(this));
+            require(balance >= obligation, "Insufficient ARMN funding for claims");
             emit ClaimFundingValidated(obligation, balance);
         }
 
@@ -428,13 +380,6 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         emit MinimumPurchaseUpdated(oldMinimum, newMinimum);
     }
 
-    function setMaxPriceFeedAge(uint256 newMaxAge) external onlyOwner {
-        require(newMaxAge > 0, "Invalid feed age");
-        uint256 oldAge = maxPriceFeedAge;
-        maxPriceFeedAge = newMaxAge;
-        emit MaxPriceFeedAgeUpdated(oldAge, newMaxAge);
-    }
-
     function withdrawRaisedFunds(address token, uint256 amount) external onlyOwner {
         require(token == address(usdt) || token == address(usdc), "Unsupported token");
         require(amount > 0, "Zero amount");
@@ -443,18 +388,8 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         emit FundsWithdrawn(token, treasury, amount);
     }
 
-    function withdrawRaisedETH(uint256 amount) external onlyOwner {
-        require(amount > 0, "Zero amount");
-        require(address(this).balance >= amount, "Insufficient ETH");
-
-        (bool ok,) = payable(treasury).call{value: amount}("");
-        require(ok, "ETH transfer failed");
-
-        emit EthWithdrawn(treasury, amount);
-    }
-
     function recoverNonSaleToken(address token, uint256 amount) external onlyOwner {
-        require(token != address(artm3), "Use sale funding discipline for ARTM3");
+        require(token != address(armn), "Use sale funding discipline for ARMN");
         require(token != address(usdt) && token != address(usdc), "Use withdrawRaisedFunds for sale proceeds");
         require(amount > 0, "Zero amount");
         require(IERC20(token).balanceOf(address(this)) >= amount, "Insufficient balance");
@@ -465,45 +400,43 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
     function withdrawExcessSaleTokens(uint256 amount) external onlyOwner {
         require(amount > 0, "Zero amount");
 
-        uint256 balance = artm3.balanceOf(address(this));
+        uint256 balance = armn.balanceOf(address(this));
         uint256 obligation = getRequiredTokenFunding();
         uint256 excess = balance > obligation ? balance - obligation : 0;
 
-        require(amount <= excess, "Amount exceeds excess ARTM3");
+        require(amount <= excess, "Amount exceeds excess ARMN");
 
-        artm3.safeTransfer(treasury, amount);
-        emit FundsWithdrawn(address(artm3), treasury, amount);
+        armn.safeTransfer(treasury, amount);
+        emit FundsWithdrawn(address(armn), treasury, amount);
     }
 
-    function notifySaleTokenFunding(uint256 amount) external onlyOwner {
-        require(amount > 0, "Zero amount");
-        emit SaleTokenFundingReceived(msg.sender, amount);
-    }
+    // ------------------------------
+    // Internal logic
+    // ------------------------------
 
-    function _buy(address paymentToken, uint256 paymentAmount, uint256 usdValue) internal {
+    function _buy(address paymentToken, uint256 amount) internal {
         require(saleActive, "Sale inactive");
         require(!claimActive, "Buying disabled once claims are active");
-        require(
-            paymentToken == address(0) || paymentToken == address(usdt) || paymentToken == address(usdc),
-            "Unsupported payment token"
-        );
-        require(usdValue >= minimumPurchaseUsd, "Below minimum purchase");
+        require(paymentToken == address(usdt) || paymentToken == address(usdc), "Unsupported payment token");
+        require(amount >= minimumPurchaseUsd, "Below minimum purchase");
         require(totalTokensSold < presaleTokenCap, "Presale sold out");
 
-        QuoteResult memory quote = _quoteTokensForUsd(usdValue);
+        QuoteResult memory quote = _quoteTokensForUsd(amount);
 
         require(quote.tokensAllocated > 0, "No tokens allocatable");
-        require(quote.usdUsed == usdValue, "Amount crosses remaining cap; use smaller amount");
+        require(quote.usdUsed == amount, "Amount crosses remaining cap; use smaller amount");
         require(totalTokensSold + quote.tokensAllocated <= presaleTokenCap, "Exceeds presale cap");
+
+        IERC20(paymentToken).safeTransferFrom(msg.sender, address(this), amount);
 
         _applyBatchAllocation(quote.tokensAllocated);
 
         totalPurchases += 1;
-        totalUsdRaised += usdValue;
+        totalUsdRaised += amount;
         totalTokensSold += quote.tokensAllocated;
 
         Buyer storage buyer = buyers[msg.sender];
-        buyer.totalUsdSpent += usdValue;
+        buyer.totalUsdSpent += amount;
         buyer.totalTokensAllocated += quote.tokensAllocated;
         buyer.purchaseCount += 1;
 
@@ -511,8 +444,8 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
             id: totalPurchases,
             buyer: msg.sender,
             paymentToken: paymentToken,
-            paymentAmount: paymentAmount,
-            usdValue: usdValue,
+            paymentAmount: amount,
+            usdValue: amount,
             tokensAllocated: quote.tokensAllocated,
             timestamp: block.timestamp,
             startBatchId: quote.startBatchId,
@@ -525,13 +458,18 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
             totalPurchases,
             msg.sender,
             paymentToken,
-            paymentAmount,
-            usdValue,
+            amount,
+            amount,
             quote.tokensAllocated,
             quote.startBatchId,
             quote.endBatchId,
             block.timestamp
         );
+    }
+
+    function notifySaleTokenFunding(uint256 amount) external onlyOwner {
+        require(amount > 0, "Zero amount");
+        emit SaleTokenFundingReceived(msg.sender, amount);
     }
 
     function _quoteTokensForUsd(uint256 usdAmount) internal view returns (QuoteResult memory result) {
@@ -553,6 +491,8 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
                 started = true;
             }
 
+            // Max whole token units purchasable in this batch from remainingUsd
+            // tokens = usd / price, scaled to 18 decimals => usdAmount(6dp) * 1e18 / price(6dp)
             uint256 tokensAtThisPrice = (remainingUsd * TOKEN_DECIMALS) / batch.priceUsd;
 
             if (tokensAtThisPrice == 0) {
@@ -566,10 +506,11 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
                 remainingUsd -= usdNeededForFullBatch;
                 result.endBatchId = i;
             } else {
+                uint256 usdUsedHere = (tokensAtThisPrice * batch.priceUsd) / TOKEN_DECIMALS;
                 result.tokensAllocated += tokensAtThisPrice;
-                result.usdUsed += remainingUsd;
+                result.usdUsed += usdUsedHere;
                 result.endBatchId = i;
-                remainingUsd = 0;
+                remainingUsd -= usdUsedHere;
                 break;
             }
         }
@@ -606,3 +547,28 @@ contract ArtemisPresaleV2 is Ownable, Pausable, ReentrancyGuard {
         require(remaining == 0, "Batch allocation incomplete");
     }
 }
+
+/**
+ * Example Artemis constructor values:
+ *
+ * _presaleTokenCap    = 5_000_000 * 1e18
+ * _minimumPurchaseUsd = 25 * 1e6
+ *
+ * _batchCaps = [
+ *   500_000 * 1e18,
+ *   750_000 * 1e18,
+ *   1_000_000 * 1e18,
+ *   1_000_000 * 1e18,
+ *   1_250_000 * 1e18,
+ *   500_000 * 1e18
+ * ]
+ *
+ * _batchPricesUsd = [
+ *   250_000,
+ *   400_000,
+ *   550_000,
+ *   700_000,
+ *   800_000,
+ *   900_000
+ * ]
+ */

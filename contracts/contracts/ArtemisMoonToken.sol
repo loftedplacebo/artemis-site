@@ -11,13 +11,13 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 
 /**
- * ArtemisToken
+ * ArtemisMoonToken
  * Fixed-supply ERC20. Entire supply is minted once to the treasury on deployment.
  */
-contract ArtemisToken is ERC20 {
+contract ArtemisMoonToken is ERC20 {
     uint256 public constant MAX_SUPPLY = 10_000_000 * 1e18;
 
-    constructor(address treasury) ERC20("Artemis", "ARTM3") {
+    constructor(address treasury) ERC20("Artemis Moon", "ARMN") {
         require(treasury != address(0), "Invalid treasury");
         _mint(treasury, MAX_SUPPLY);
     }

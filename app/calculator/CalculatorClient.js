@@ -15,12 +15,12 @@ import {
 } from 'lucide-react';
 
 const batches = [
-  { name: 'Batch 1', price: 0.25, supply: '500k ARTM3', note: 'Ignition' },
-  { name: 'Batch 2', price: 0.4, supply: '750k ARTM3', note: 'Lift-off' },
-  { name: 'Batch 3', price: 0.55, supply: '1m ARTM3', note: 'Orbit' },
-  { name: 'Batch 4', price: 0.7, supply: '1m ARTM3', note: 'Lunar approach' },
-  { name: 'Batch 5', price: 0.8, supply: '1.25m ARTM3', note: 'Moonbound' },
-  { name: 'Final boarding', price: 0.9, supply: '500k ARTM3', note: 'Last call' },
+  { name: 'Batch 1', price: 0.25, supply: '500k ARMN', note: 'Ignition' },
+  { name: 'Batch 2', price: 0.4, supply: '750k ARMN', note: 'Lift-off' },
+  { name: 'Batch 3', price: 0.55, supply: '1m ARMN', note: 'Orbit' },
+  { name: 'Batch 4', price: 0.7, supply: '1m ARMN', note: 'Lunar approach' },
+  { name: 'Batch 5', price: 0.8, supply: '1.25m ARMN', note: 'Moonbound' },
+  { name: 'Final boarding', price: 0.9, supply: '500k ARMN', note: 'Last call' },
 ];
 
 const futurePrices = Array.from({ length: 10 }, (_, index) => index + 1);
@@ -117,8 +117,8 @@ export default function CalculatorClient() {
               <Rocket className="h-5 w-5 text-blue-200" />
             </div>
             <div>
-              <div className="text-lg font-semibold uppercase tracking-[0.18em] text-blue-50 md:text-xl">Artemis</div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">Lunar coin. mission</div>
+              <div className="text-lg font-semibold uppercase tracking-[0.18em] text-blue-50 md:text-xl">Artemis Moon</div>
+              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">Artemis Moon Network</div>
             </div>
           </Link>
 
@@ -135,7 +135,7 @@ export default function CalculatorClient() {
               className="inline-flex h-11 flex-1 items-center justify-center rounded-2xl border border-blue-400/40 bg-blue-500/10 px-3 text-sm font-semibold text-blue-100 shadow-inner transition hover:border-blue-300/60 hover:bg-blue-500/20 sm:flex-none sm:px-5"
             >
               <Wallet className="mr-2 h-4 w-4" />
-              Buy $ARTM3
+              Buy $ARMN
             </Link>
           </div>
         </header>
@@ -147,7 +147,7 @@ export default function CalculatorClient() {
                 Pick a batch. Plot a <span className="text-cyan-300">Moonshot.</span>
               </h1>
               <p className="mt-5 max-w-none text-lg leading-8 text-blue-100/75">
-                Explore how a contribution at each ARTM3 presale price translates into tokens, then compare purely
+                Explore how a contribution at each ARMN presale price translates into tokens, then compare purely
                 illustrative values from the $1 target scenario to the $10 Moon scenario.
               </p>
             </div>
@@ -161,7 +161,7 @@ export default function CalculatorClient() {
                 <div>
                   <div className="text-xs uppercase text-blue-100/50">Selected batch</div>
                   <div className="mt-1 text-xl font-semibold text-white">{batch.name}</div>
-                  <div className="text-sm text-cyan-200">{currency(batch.price, 2)} per ARTM3</div>
+                  <div className="text-sm text-cyan-200">{currency(batch.price, 2)} per ARMN</div>
                 </div>
                 <div>
                   <div className="text-xs uppercase text-blue-100/50">Scenario price</div>
@@ -277,7 +277,7 @@ export default function CalculatorClient() {
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-semibold text-cyan-200">{currency(futurePrice, 0)}</div>
-                  <div className="text-xs text-blue-100/55">per ARTM3</div>
+                  <div className="text-xs text-blue-100/55">per ARMN</div>
                 </div>
               </div>
               <input
@@ -288,7 +288,7 @@ export default function CalculatorClient() {
                 value={futurePrice}
                 onChange={(event) => setFuturePrice(Number(event.target.value))}
                 className="mt-7 h-2 w-full cursor-pointer accent-cyan-300"
-                aria-label="Illustrative future ARTM3 price"
+                aria-label="Illustrative future ARMN price"
               />
               <div className="mt-4 grid grid-cols-10 gap-1">
                 {futurePrices.map((price) => (
@@ -322,9 +322,9 @@ export default function CalculatorClient() {
               </div>
               <div className="mt-7 grid gap-6 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
                 <div>
-                  <div className="text-sm text-blue-100/65">At {currency(batch.price, 2)} per ARTM3, {currency(safeContribution, 0)} would allocate</div>
+                  <div className="text-sm text-blue-100/65">At {currency(batch.price, 2)} per ARMN, {currency(safeContribution, 0)} would allocate</div>
                   <div className="mt-2 text-4xl font-semibold leading-tight text-white md:text-5xl">
-                    {quantity(allocatedTokens, 0)} <span className="text-cyan-200">ARTM3</span>
+                    {quantity(allocatedTokens, 0)} <span className="text-cyan-200">ARMN</span>
                   </div>
                 </div>
                 <div className="border border-cyan-300/25 bg-slate-950/25 p-5 md:p-6">
@@ -341,7 +341,7 @@ export default function CalculatorClient() {
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <div className="text-xs uppercase text-cyan-200/60">Moonshot moments</div>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">How far could Artemis 3 take you?</h2>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">How far could Artemis Moon take you?</h2>
                 </div>
                 <div className="text-sm text-blue-100/55">Playful value comparisons only</div>
               </div>
@@ -388,7 +388,7 @@ export default function CalculatorClient() {
               <p className="mt-5 flex gap-2 text-xs leading-5 text-blue-100/50">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200/70" />
                 The images and amounts are creative comparison points only. They are not rewards, product offers, or a
-                prediction of ARTM3&apos;s future market price or value.
+                prediction of ARMN&apos;s future market price or value.
               </p>
             </section>
           </div>
@@ -399,7 +399,7 @@ export default function CalculatorClient() {
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-cyan-200" />
             <p>
               This calculator is for illustration and entertainment. It does not account for available batch supply,
-              fees, tax, market liquidity, token availability, or any future price movement. ARTM3 can lose all value.
+              fees, tax, market liquidity, token availability, or any future price movement. ARMN can lose all value.
             </p>
           </div>
           <Link href="/whitepaper" className="inline-flex items-center gap-2 font-semibold text-cyan-200 hover:text-white hover:underline">

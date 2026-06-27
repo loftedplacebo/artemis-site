@@ -31,12 +31,12 @@ async function main() {
   console.log("Deploying with:", deployer.address);
   console.log("Treasury:", treasury);
 
-  const Token = await ethers.getContractFactory("ArtemisToken");
+  const Token = await ethers.getContractFactory("ArtemisMoonToken");
   const token = await Token.deploy(treasury);
   await token.waitForDeployment();
   const tokenAddress = await token.getAddress();
 
-  console.log("ArtemisToken deployed:", tokenAddress);
+  console.log("ArtemisMoonToken deployed:", tokenAddress);
 
   const presaleArgs = [
     tokenAddress,
@@ -49,12 +49,12 @@ async function main() {
     DEPLOYMENT_PARAMS.presale.batchPricesUsd,
   ] as const;
 
-  const Presale = await ethers.getContractFactory("ArtemisPresale");
+  const Presale = await ethers.getContractFactory("ArtemisMoonPresale");
   const presale = await Presale.deploy(...presaleArgs);
   await presale.waitForDeployment();
   const presaleAddress = await presale.getAddress();
 
-  console.log("ArtemisPresale deployed:", presaleAddress);
+  console.log("ArtemisMoonPresale deployed:", presaleAddress);
 
   console.log("Waiting before verification...");
   await new Promise((resolve) => setTimeout(resolve, 15000));

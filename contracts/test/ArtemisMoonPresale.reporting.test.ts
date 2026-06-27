@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { deployFixture, MIN_PURCHASE_USD } from "./helpers";
 
-describe("ArtemisPresale reporting", function () {
+describe("ArtemisMoonPresale reporting", function () {
   it("returns dashboard data and purchases for a wallet", async function () {
     const { buyer1, presale, usdt } = await deployFixture();
 

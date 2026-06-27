@@ -2,11 +2,11 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { deployFixture, BATCH_CAPS, BATCH_PRICES, MIN_PURCHASE_USD, PRESALE_CAP } from "./helpers";
 
-describe("ArtemisPresale deployment", function () {
+describe("ArtemisMoonPresale deployment", function () {
   it("stores constructor values correctly", async function () {
-    const { treasury, artm3, usdt, usdc, presale } = await deployFixture();
+    const { treasury, armn, usdt, usdc, presale } = await deployFixture();
 
-    expect(await presale.artm3()).to.equal(await artm3.getAddress());
+    expect(await presale.armn()).to.equal(await armn.getAddress());
     expect(await presale.usdt()).to.equal(await usdt.getAddress());
     expect(await presale.usdc()).to.equal(await usdc.getAddress());
     expect(await presale.treasury()).to.equal(treasury.address);
@@ -39,14 +39,14 @@ describe("ArtemisPresale deployment", function () {
     await usdt.waitForDeployment();
     await usdc.waitForDeployment();
 
-    const ArtemisToken = await ethers.getContractFactory("ArtemisToken");
-    const artm3 = await ArtemisToken.deploy(treasury.address);
-    await artm3.waitForDeployment();
+    const ArtemisMoonToken = await ethers.getContractFactory("ArtemisMoonToken");
+    const armn = await ArtemisMoonToken.deploy(treasury.address);
+    await armn.waitForDeployment();
 
-    const ArtemisPresale = await ethers.getContractFactory("ArtemisPresale");
+    const ArtemisMoonPresale = await ethers.getContractFactory("ArtemisMoonPresale");
     await expect(
-      ArtemisPresale.deploy(
-        await artm3.getAddress(),
+      ArtemisMoonPresale.deploy(
+        await armn.getAddress(),
         await usdt.getAddress(),
         await usdc.getAddress(),
         treasury.address,

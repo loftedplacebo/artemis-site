@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import { ContractFactory, JsonRpcProvider, Wallet, getAddress, isAddress } from "ethers";
 
 const TEAM_ALLOCATION = 500_000n * 10n ** 18n;
-const TEAM_UNLOCK_TIME = 1830297600n; // 2028-01-01T00:00:00Z
+const TEAM_UNLOCK_TIME = 1861920000n; // 2029-01-01T00:00:00Z
 
 function requireAddress(name: string): string {
   const value = process.env[name]?.trim();
@@ -25,7 +25,7 @@ function requireEnv(name: string): string {
 async function main() {
   const rpcUrl = requireEnv("MAINNET_RPC_URL");
   const deployer = new Wallet(requireEnv("PRIVATE_KEY"), new JsonRpcProvider(rpcUrl));
-  const token = requireAddress("ARTEMIS_TOKEN_ADDRESS");
+  const token = requireAddress("ARTEMIS_MOON_TOKEN_ADDRESS");
   const beneficiary = requireAddress("TEAM_BENEFICIARY");
   const network = await deployer.provider.getNetwork();
 
@@ -34,7 +34,7 @@ async function main() {
   }
 
   const artifact = JSON.parse(
-    fs.readFileSync("artifacts/contracts/ArtemisTeamLock.sol/ArtemisTeamLock.json", "utf8")
+    fs.readFileSync("artifacts/contracts/ArtemisMoonTeamLock.sol/ArtemisMoonTeamLock.json", "utf8")
   );
   const latestBlock = await deployer.provider.getBlock("latest");
   if (BigInt(latestBlock?.timestamp || 0) >= TEAM_UNLOCK_TIME) {

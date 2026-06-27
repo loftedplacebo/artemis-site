@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { deployFixture, MIN_PURCHASE_USD } from "./helpers";
 
-describe("ArtemisPresale admin", function () {
+describe("ArtemisMoonPresale admin", function () {
   it("only owner can pause and update treasury", async function () {
     const { buyer1, presale, treasury } = await deployFixture();
 
@@ -44,8 +44,8 @@ describe("ArtemisPresale admin", function () {
     ).to.be.reverted;
   });
 
-  it("only withdraws excess ARTM3 above buyer obligations", async function () {
-    const { buyer1, presale, usdt, artm3, treasury } = await deployFixture();
+  it("only withdraws excess ARMN above buyer obligations", async function () {
+    const { buyer1, presale, usdt, armn, treasury } = await deployFixture();
 
     await presale.setSaleActive(true);
     await usdt.connect(buyer1).approve(await presale.getAddress(), MIN_PURCHASE_USD);
@@ -53,9 +53,9 @@ describe("ArtemisPresale admin", function () {
 
     const obligation = await presale.getRequiredTokenFunding();
     const extra = 1000n;
-    await artm3.connect(treasury).transfer(await presale.getAddress(), obligation + extra);
+    await armn.connect(treasury).transfer(await presale.getAddress(), obligation + extra);
 
     await expect(presale.withdrawExcessSaleTokens(extra)).to.emit(presale, "FundsWithdrawn");
-    await expect(presale.withdrawExcessSaleTokens(1n)).to.be.revertedWith("Amount exceeds excess ARTM3");
+    await expect(presale.withdrawExcessSaleTokens(1n)).to.be.revertedWith("Amount exceeds excess ARMN");
   });
 });

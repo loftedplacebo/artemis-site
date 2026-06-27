@@ -1,9 +1,9 @@
 import PresaleClient from './PresaleClient';
 
 export const metadata = {
-  title: 'Buy $ARTM3 | Artemis Presale | Ethereum Coin',
+  title: 'Buy $ARMN | Artemis Moon Presale | Ethereum Coin',
   description:
-    'Buy $ARTM3 in the Artemis presale. Connect your wallet and purchase using ETH, USDT or USDC on the Ethereum network before the planned exchange launch.',
+    'Buy $ARMN in the Artemis Moon presale. Connect your wallet and purchase using ETH, USDT or USDC on the Ethereum network before the planned exchange launch.',
   alternates: {
     canonical: '/presale',
   },
