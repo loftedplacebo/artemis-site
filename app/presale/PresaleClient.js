@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Loader2,
   Mail,
+  PlusCircle,
   RefreshCw,
   Rocket,
   ShieldCheck,
@@ -41,6 +42,7 @@ import {
   mapTransactionErrorToNotice,
   mapWalletErrorToNotice,
 } from '@/lib/web3/errors';
+import { watchArtemisToken } from '@/lib/web3/watchAsset';
 
 const TOKEN_DECIMALS = 18;
 const STABLE_DECIMALS = 6;
@@ -221,6 +223,7 @@ export default function ArtemisPresalePage() {
   const [emailConsent, setEmailConsent] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState('');
+  const [isAddingToken, setIsAddingToken] = useState(false);
 
   const { address, isConnected, connector, chain } = useAccount();
   const { disconnect } = useDisconnect();
@@ -628,6 +631,39 @@ export default function ArtemisPresalePage() {
     }
 
     disconnect();
+  };
+
+  const handleAddTokenToWallet = async () => {
+    setActionMessage('');
+    setWalletNotice(null);
+    setSuccessMessage('');
+
+    if (!isConnected) {
+      handleOpenWalletModal();
+      return;
+    }
+
+    setIsAddingToken(true);
+
+    try {
+      const wasAdded = await watchArtemisToken(connector);
+
+      if (wasAdded) {
+        setSuccessMessage('ARMN has been added to your wallet.');
+      } else {
+        setActionMessage('Token import was cancelled in your wallet.');
+      }
+    } catch (error) {
+      setWalletNotice(
+        mapWalletErrorToNotice(
+          error instanceof Error
+            ? error
+            : new Error('Your wallet could not import ARMN automatically.')
+        )
+      );
+    } finally {
+      setIsAddingToken(false);
+    }
   };
 
   const refreshReads = () => {
@@ -1111,7 +1147,7 @@ export default function ArtemisPresalePage() {
                       {isSwitchingChain ? 'Switching network...' : primaryButtonLabel}
                     </Button>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid gap-3 sm:grid-cols-3">
                       <Button
                         variant="outline"
                         className="h-auto min-h-12 min-w-0 rounded-2xl px-3 py-2 font-medium leading-4"
@@ -1122,11 +1158,24 @@ export default function ArtemisPresalePage() {
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-12 rounded-2xl font-medium"
+                        className="h-auto min-h-12 min-w-0 rounded-2xl px-3 py-2 font-medium leading-4"
+                        onClick={handleAddTokenToWallet}
+                        disabled={isAddingToken}
+                      >
+                        {isAddingToken ? (
+                          <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" />
+                        ) : (
+                          <PlusCircle className="mr-2 h-4 w-4 shrink-0" />
+                        )}
+                        <span className="text-center">Add ARMN</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-auto min-h-12 min-w-0 rounded-2xl px-3 py-2 font-medium leading-4"
                         onClick={refreshReads}
                       >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Refresh
+                        <RefreshCw className="mr-2 h-4 w-4 shrink-0" />
+                        <span className="text-center">Refresh</span>
                       </Button>
                     </div>
                   </div>
