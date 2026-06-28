@@ -59,6 +59,8 @@ export const metadata = {
 
   twitter: {
     card: 'summary_large_image',
+    site: '@ArtemisControl',
+    creator: '@ArtemisControl',
     title: 'Artemis Moon - $ARMN',
     description:
       'A community token for the Artemis era of lunar exploration.',

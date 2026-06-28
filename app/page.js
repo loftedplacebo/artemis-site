@@ -199,7 +199,7 @@ export default function ArtemisLandingPage() {
   </ButtonLink>
   {/* Social Icons */}
   <a
-    href="https://x.com/artemismoon"
+    href="https://x.com/ArtemisControl"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
@@ -969,7 +969,7 @@ export default function ArtemisLandingPage() {
       {/* Social links again (optional but strong) */}
       <div className="flex justify-center gap-4 mb-6">
         <a
-          href="https://x.com/artemismoon"
+          href="https://x.com/ArtemisControl"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-200/60 hover:text-white transition"
