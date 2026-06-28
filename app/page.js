@@ -235,15 +235,15 @@ export default function ArtemisLandingPage() {
               id="hero-heading"
               className="text-5xl md:text-7xl font-semibold leading-[0.95] tracking-tight"
             >
-              Artemis Moon
+              The coin
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-blue-400 to-sky-300">
-                built for the lunar era.
+                built to go to the Moon.
               </span>
             </h1>
 
             <p className="mt-6 text-lg text-blue-100/70 max-w-2xl leading-8">
-              $ARMN is a mission-agnostic lunar token built for the Artemis era, from humanity&apos;s
-              return to the Moon to the missions that follow.
+              When Artemis lands on the Moon, ARMN aims to list on a Tier 1 exchange - because in
+              crypto, that is the Moon.
             </p>
 
             <p className="mt-5 text-base text-blue-100/65 max-w-2xl leading-8">
