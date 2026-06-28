@@ -10,7 +10,6 @@ import {
   Lock,
   TrendingDown,
   X,
-  Send,
   ExternalLink,
   FileText,
   Calculator,
@@ -206,16 +205,6 @@ export default function ArtemisLandingPage() {
   >
     <X className="w-4 h-4" />
   </a>
-
-  <a
-    href="https://t.me/artemismoonofficial"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
-  >
-    <Send className="w-4 h-4" />
-  </a>
-
   {/* Buy Button */}
   <ButtonLink
     href="/presale"
@@ -975,14 +964,6 @@ export default function ArtemisLandingPage() {
           className="text-blue-200/60 hover:text-white transition"
         >
           <X className="w-5 h-5" />
-        </a>
-        <a
-          href="https://t.me/artemismoonofficial"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-200/60 hover:text-white transition"
-        >
-          <Send className="w-5 h-5" />
         </a>
       </div>
 
