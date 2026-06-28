@@ -12,7 +12,7 @@ import {
   walletConnectWallet,
   trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { WagmiProvider, http } from 'wagmi';
+import { WagmiProvider, fallback, http } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { useState } from 'react';
 
@@ -30,7 +30,12 @@ const config = getDefaultConfig({
     },
   ],
   transports: {
-    [mainnet.id]: http(),
+    [mainnet.id]: fallback([
+      http('https://ethereum-rpc.publicnode.com'),
+      http('https://eth.llamarpc.com'),
+      http('https://rpc.ankr.com/eth'),
+      http(),
+    ]),
   },
   ssr: true,
 });
