@@ -20,6 +20,17 @@ export const metadata = {
 
   applicationName: 'Artemis Moon',
 
+  icons: {
+    icon: [
+      {
+        url: '/artemis-moon-icon.svg',
+        type: 'image/svg+xml',
+        sizes: '32x32',
+      },
+    ],
+    shortcut: ['/artemis-moon-icon.svg'],
+  },
+
   alternates: {
     canonical: '/',
   },
