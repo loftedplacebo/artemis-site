@@ -49,10 +49,10 @@ export const metadata = {
       'A mission-agnostic lunar token for the Artemis era.',
     images: [
       {
-        url: `${siteUrl}/images/calculator/private-rocket.png`,
-        width: 1024,
-        height: 1024,
-        alt: 'A private rocket launching through a starry sky',
+        url: `${siteUrl}/social-card.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Artemis Moon social preview card showing a rocket launching toward the Moon',
       },
     ],
   },
@@ -62,7 +62,7 @@ export const metadata = {
     title: 'Artemis Moon - $ARMN',
     description:
       'A community token for the Artemis era of lunar exploration.',
-    images: [`${siteUrl}/images/calculator/private-rocket.png`],
+    images: [`${siteUrl}/social-card.png`],
   },
 };
 
