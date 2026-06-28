@@ -13,6 +13,13 @@ import {
 import { controlCentreArticles, controlCentreUpdated } from './missionContent';
 
 const siteUrl = 'https://artemismoon.io';
+const featuredNav = [
+  ['Overview', '/control-centre'],
+  ['Artemis III', '/control-centre/artemis-iii'],
+  ['Artemis IV', '/control-centre/artemis-iv'],
+  ['SLS Rocket', '/control-centre/sls-rocket'],
+  ['South Pole', '/control-centre/lunar-south-pole'],
+];
 
 export const metadata = {
   title: 'Artemis Control Centre | NASA Artemis Mission Guides',
@@ -101,6 +108,21 @@ export default function ControlCentrePage() {
             </nav>
           </header>
 
+          <nav
+            aria-label="Control Centre mission navigation"
+            className="mt-6 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black/18 p-2"
+          >
+            {featuredNav.map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                className="shrink-0 rounded-xl border border-blue-200/15 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-50/80 transition hover:border-cyan-200/35 hover:bg-cyan-300/10 hover:text-white"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
           <div className="grid gap-10 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
               <div className="inline-flex items-center rounded-full border border-cyan-200/25 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100">
@@ -162,12 +184,12 @@ export default function ControlCentrePage() {
               Mission index
             </div>
             <h2 className="mt-2 text-3xl font-semibold text-white md:text-5xl">
-              Pages built for search traffic.
+              Explore the missions shaping the next Moon moment.
             </h2>
           </div>
           <p className="max-w-xl text-sm leading-7 text-blue-50/65">
-            Each page answers a specific Artemis search question, links to NASA sources, and routes
-            readers toward the ARMN presale, calculator and whitepaper.
+            Deep-dive guides for the Artemis timeline, the SLS rocket, the lunar South Pole and the
+            landing window that could bring global attention back to the Moon.
           </p>
         </div>
 

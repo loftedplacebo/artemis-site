@@ -18,13 +18,21 @@ import {
 } from '../missionContent';
 
 const siteUrl = 'https://artemismoon.io';
+const featuredNav = [
+  ['Overview', '/control-centre'],
+  ['Artemis III', '/control-centre/artemis-iii'],
+  ['Artemis IV', '/control-centre/artemis-iv'],
+  ['SLS Rocket', '/control-centre/sls-rocket'],
+  ['South Pole', '/control-centre/lunar-south-pole'],
+];
 
 export function generateStaticParams() {
   return controlCentreArticles.map((article) => ({ slug: article.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const article = getControlCentreArticle(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const article = getControlCentreArticle(slug);
 
   if (!article) return {};
 
@@ -66,8 +74,9 @@ function CtaLink({ href, children, variant = 'primary' }) {
   );
 }
 
-export default function ControlCentreArticlePage({ params }) {
-  const article = getControlCentreArticle(params.slug);
+export default async function ControlCentreArticlePage({ params }) {
+  const { slug } = await params;
+  const article = getControlCentreArticle(slug);
 
   if (!article) {
     notFound();
@@ -157,6 +166,25 @@ export default function ControlCentreArticlePage({ params }) {
               </CtaLink>
             </div>
           </header>
+
+          <nav
+            aria-label="Control Centre mission navigation"
+            className="mt-6 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black/18 p-2"
+          >
+            {featuredNav.map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                className={`shrink-0 rounded-xl border px-4 py-2 text-sm font-semibold transition ${
+                  href.endsWith(article.slug)
+                    ? 'border-cyan-200/45 bg-cyan-300/15 text-white'
+                    : 'border-blue-200/15 bg-blue-500/10 text-blue-50/80 hover:border-cyan-200/35 hover:bg-cyan-300/10 hover:text-white'
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
           <div className="grid gap-10 py-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
             <div>
