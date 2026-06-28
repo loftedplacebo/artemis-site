@@ -1,8 +1,10 @@
+import { controlCentreArticles } from './control-centre/missionContent';
+
 const siteUrl = 'https://artemismoon.io';
-const lastModified = new Date('2026-06-23');
+const lastModified = new Date('2026-06-28');
 
 export default function sitemap() {
-  return [
+  const staticRoutes = [
     {
       url: `${siteUrl}/`,
       lastModified,
@@ -34,4 +36,23 @@ export default function sitemap() {
       ],
     },
   ];
+
+  const controlCentreRoutes = [
+    {
+      url: `${siteUrl}/control-centre`,
+      lastModified,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      images: [`${siteUrl}/images/calculator/private-rocket.png`],
+    },
+    ...controlCentreArticles.map((article) => ({
+      url: `${siteUrl}/control-centre/${article.slug}`,
+      lastModified,
+      changeFrequency: 'weekly',
+      priority: article.priority,
+      images: [`${siteUrl}${article.image}`],
+    })),
+  ];
+
+  return [...staticRoutes, ...controlCentreRoutes];
 }

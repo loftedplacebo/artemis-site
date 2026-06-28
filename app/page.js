@@ -182,6 +182,14 @@ export default function ArtemisLandingPage() {
     Calculator
   </ButtonLink>
   <ButtonLink
+    href="/control-centre"
+    variant="ghost"
+    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
+  >
+    <Satellite className="mr-2 h-4 w-4" />
+    Control Centre
+  </ButtonLink>
+  <ButtonLink
     href="/whitepaper"
     variant="ghost"
     className="hidden rounded-2xl h-11 px-4 text-sm md:inline-flex"
@@ -288,6 +296,10 @@ export default function ArtemisLandingPage() {
               <ButtonLink href="/calculator" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
                 <Calculator className="mr-2 h-4 w-4" />
                 Calculator
+              </ButtonLink>
+              <ButtonLink href="/control-centre" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
+                <Satellite className="mr-2 h-4 w-4" />
+                Control Centre
               </ButtonLink>
             </div>
 
