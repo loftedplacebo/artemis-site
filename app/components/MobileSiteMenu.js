@@ -47,7 +47,7 @@ export default function MobileSiteMenu({ className = '', hideAt = 'md' }) {
             className="fixed inset-0 z-40 cursor-default bg-black/20"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 z-50 mt-3 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-blue-200/20 bg-[#071436]/95 p-2 shadow-[0_24px_70px_rgba(2,6,23,0.55)] backdrop-blur-xl">
+          <div className="fixed right-4 top-20 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-blue-200/20 bg-[#071436]/95 p-2 shadow-[0_24px_70px_rgba(2,6,23,0.55)] backdrop-blur-xl">
             <div className="px-3 py-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100/70">
                 <Rocket className="h-4 w-4" />

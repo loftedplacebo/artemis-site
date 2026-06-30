@@ -177,7 +177,7 @@ export default function ArtemisLandingPage() {
   <ButtonLink
     href="/calculator"
     variant="ghost"
-    className="hidden rounded-2xl h-11 px-4 text-sm md:inline-flex"
+    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
   >
     <Calculator className="mr-2 h-4 w-4" />
     Calculator
@@ -201,7 +201,7 @@ export default function ArtemisLandingPage() {
   <ButtonLink
     href="/whitepaper"
     variant="ghost"
-    className="hidden rounded-2xl h-11 px-4 text-sm md:inline-flex"
+    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
   >
     <FileText className="mr-2 h-4 w-4" />
     Whitepaper
@@ -211,7 +211,7 @@ export default function ArtemisLandingPage() {
     href="https://x.com/ArtemisControl"
     target="_blank"
     rel="noopener noreferrer"
-    className="hidden w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 md:flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
+    className="hidden w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 lg:flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
   >
     <X className="w-4 h-4" />
   </a>
