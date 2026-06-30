@@ -157,15 +157,15 @@ export default function ArtemisLandingPage() {
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-6">
-        <header className="flex items-center justify-between py-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl border border-blue-400/25 bg-blue-500/10 flex items-center justify-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:px-6">
+        <header className="flex items-center justify-between gap-3 py-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-blue-400/25 bg-blue-500/10 sm:h-10 sm:w-10">
               <Rocket className="w-5 h-5 text-blue-200" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="text-base sm:text-lg md:text-xl font-semibold tracking-[0.14em] sm:tracking-[0.18em] text-blue-50 uppercase">
-                Artemis Moon
+                Artemis<span className="hidden sm:inline"> Moon</span>
               </div>
               <div className="hidden text-[11px] uppercase tracking-[0.3em] text-blue-200/45 sm:block">
                 Artemis Moon Network
@@ -173,7 +173,7 @@ export default function ArtemisLandingPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
   <ButtonLink
     href="/calculator"
     variant="ghost"
@@ -222,9 +222,9 @@ export default function ArtemisLandingPage() {
     className="rounded-2xl h-11 px-3 text-sm font-semibold sm:px-5"
   >
     <Wallet className="w-4 h-4 mr-2" />
-    Buy $ARMN
+    Buy<span className="hidden sm:inline">&nbsp;$ARMN</span>
   </ButtonLink>
-  <MobileSiteMenu hideAt="lg" />
+  <MobileSiteMenu hideAt="lg" className="shrink-0" />
 </div>
         </header>
 
