@@ -13,6 +13,7 @@ import {
   ExternalLink,
   FileText,
   Calculator,
+  Gamepad2,
 } from 'lucide-react';
 import CountdownCard from './components/landing/CountdownCard';
 import {
@@ -181,6 +182,14 @@ export default function ArtemisLandingPage() {
     Calculator
   </ButtonLink>
   <ButtonLink
+    href="/game"
+    variant="ghost"
+    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
+  >
+    <Gamepad2 className="mr-2 h-4 w-4" />
+    Game
+  </ButtonLink>
+  <ButtonLink
     href="/control-centre"
     variant="ghost"
     className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
@@ -285,6 +294,10 @@ export default function ArtemisLandingPage() {
               <ButtonLink href="/calculator" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
                 <Calculator className="mr-2 h-4 w-4" />
                 Calculator
+              </ButtonLink>
+              <ButtonLink href="/game" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
+                <Gamepad2 className="mr-2 h-4 w-4" />
+                Play Game
               </ButtonLink>
               <ButtonLink href="/control-centre" variant="ghost" className="rounded-2xl h-11 px-5 text-sm">
                 <Satellite className="mr-2 h-4 w-4" />

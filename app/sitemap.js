@@ -35,6 +35,13 @@ export default function sitemap() {
         `${siteUrl}/images/calculator/private-rocket.png`,
       ],
     },
+    {
+      url: `${siteUrl}/game`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.75,
+      images: [`${siteUrl}/social-card.png`],
+    },
   ];
 
   const controlCentreRoutes = [
