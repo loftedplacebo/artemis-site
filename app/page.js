@@ -173,59 +173,64 @@ export default function ArtemisLandingPage() {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-  <ButtonLink
-    href="/calculator"
-    variant="ghost"
-    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
-  >
-    <Calculator className="mr-2 h-4 w-4" />
-    Calculator
-  </ButtonLink>
-  <ButtonLink
-    href="/game"
-    variant="ghost"
-    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
-  >
-    <Gamepad2 className="mr-2 h-4 w-4" />
-    Game
-  </ButtonLink>
-  <ButtonLink
-    href="/control-centre"
-    variant="ghost"
-    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
-  >
-    <Satellite className="mr-2 h-4 w-4" />
-    Control Centre
-  </ButtonLink>
-  <ButtonLink
-    href="/whitepaper"
-    variant="ghost"
-    className="hidden rounded-2xl h-11 px-4 text-sm lg:inline-flex"
-  >
-    <FileText className="mr-2 h-4 w-4" />
-    Whitepaper
-  </ButtonLink>
-  {/* Social Icons */}
-  <a
-    href="https://x.com/ArtemisControl"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="hidden w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 lg:flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
-  >
-    <X className="w-4 h-4" />
-  </a>
-  {/* Buy Button */}
-  <ButtonLink
-    href="/presale"
-    variant="outline"
-    className="rounded-2xl h-11 px-3 text-sm font-semibold sm:px-5"
-  >
-    <Wallet className="w-4 h-4 mr-2" />
-    Buy<span className="hidden sm:inline">&nbsp;$ARMN</span>
-  </ButtonLink>
-  <MobileSiteMenu hideAt="lg" className="shrink-0" />
-</div>
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
+            <ButtonLink
+              href="/calculator"
+              variant="ghost"
+              className="rounded-2xl h-11 px-4 text-sm"
+            >
+              <Calculator className="mr-2 h-4 w-4" />
+              Calculator
+            </ButtonLink>
+            <ButtonLink href="/game" variant="ghost" className="rounded-2xl h-11 px-4 text-sm">
+              <Gamepad2 className="mr-2 h-4 w-4" />
+              Game
+            </ButtonLink>
+            <ButtonLink
+              href="/control-centre"
+              variant="ghost"
+              className="rounded-2xl h-11 px-4 text-sm"
+            >
+              <Satellite className="mr-2 h-4 w-4" />
+              Control Centre
+            </ButtonLink>
+            <ButtonLink
+              href="/whitepaper"
+              variant="ghost"
+              className="rounded-2xl h-11 px-4 text-sm"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Whitepaper
+            </ButtonLink>
+            <a
+              href="https://x.com/ArtemisControl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-400/20 bg-black/20 text-blue-200/70 transition hover:border-blue-300/40 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </a>
+            <ButtonLink
+              href="/presale"
+              variant="outline"
+              className="rounded-2xl h-11 px-5 text-sm font-semibold"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              Buy $ARMN
+            </ButtonLink>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2 lg:hidden">
+            <ButtonLink
+              href="/presale"
+              variant="outline"
+              className="rounded-2xl h-11 px-3 text-sm font-semibold sm:px-5"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              Buy<span className="hidden sm:inline">&nbsp;$ARMN</span>
+            </ButtonLink>
+            <MobileSiteMenu hideAt="lg" className="shrink-0" />
+          </div>
         </header>
 
         <section
