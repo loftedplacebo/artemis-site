@@ -13,6 +13,7 @@ import {
   Target,
   Wallet,
 } from 'lucide-react';
+import MobileSiteMenu from '../components/MobileSiteMenu';
 
 const batches = [
   { name: 'Batch 1', price: 0.25, supply: '500k ARMN', note: 'Ignition' },
@@ -111,18 +112,18 @@ export default function CalculatorClient() {
       />
 
       <div className="relative mx-auto max-w-7xl px-6 py-6 md:py-8">
-        <header className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
+        <header className="flex items-center justify-between gap-3 sm:gap-5">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-400/25 bg-blue-500/10">
               <Rocket className="h-5 w-5 text-blue-200" />
             </div>
             <div>
-              <div className="text-lg font-semibold uppercase tracking-[0.18em] text-blue-50 md:text-xl">Artemis Moon</div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">Artemis Moon Network</div>
+              <div className="text-base font-semibold uppercase tracking-[0.14em] text-blue-50 sm:text-lg sm:tracking-[0.18em] md:text-xl">Artemis Moon</div>
+              <div className="hidden text-[11px] uppercase tracking-[0.3em] text-blue-200/45 sm:block">Artemis Moon Network</div>
             </div>
           </Link>
 
-          <div className="flex w-full items-center gap-3 sm:w-auto">
+          <div className="hidden w-full items-center gap-3 md:flex md:w-auto">
             <Link
               href="/"
               className="inline-flex h-11 flex-1 items-center justify-center rounded-2xl border border-blue-400/20 bg-black/20 px-3 text-sm text-blue-100 transition hover:border-blue-300/40 hover:bg-blue-500/10 sm:flex-none sm:px-4"
@@ -137,6 +138,17 @@ export default function CalculatorClient() {
               <Wallet className="mr-2 h-4 w-4" />
               Buy $ARMN
             </Link>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3 md:hidden">
+            <Link
+              href="/presale"
+              className="inline-flex h-11 items-center justify-center rounded-2xl border border-blue-400/40 bg-blue-500/10 px-3 text-sm font-semibold text-blue-100 shadow-inner transition hover:border-blue-300/60 hover:bg-blue-500/20"
+            >
+              <Wallet className="mr-2 h-4 w-4" />
+              Buy
+            </Link>
+            <MobileSiteMenu />
           </div>
         </header>
 

@@ -16,6 +16,7 @@ import {
   controlCentreUpdated,
   getControlCentreArticle,
 } from '../missionContent';
+import MobileSiteMenu from '../../components/MobileSiteMenu';
 
 const siteUrl = 'https://artemismoon.io';
 const featuredNav = [
@@ -151,12 +152,12 @@ export default async function ControlCentreArticlePage({ params }) {
         <div className="absolute inset-0 opacity-35 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.55)_1px,transparent_0)] [background-size:34px_34px]" />
 
         <div className="relative mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10">
-          <header className="flex flex-wrap items-center justify-between gap-4">
+          <header className="flex items-center justify-between gap-4">
             <Link href="/control-centre" className="inline-flex items-center text-sm font-semibold text-blue-50/80 hover:text-white">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Control Centre
             </Link>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="hidden flex-wrap items-center gap-3 md:flex">
               <CtaLink href="/presale" variant="secondary">
                 <Wallet className="mr-2 h-4 w-4" />
                 Buy $ARMN
@@ -164,6 +165,13 @@ export default async function ControlCentreArticlePage({ params }) {
               <CtaLink href="/calculator" variant="secondary">
                 Calculator
               </CtaLink>
+            </div>
+            <div className="flex items-center gap-3 md:hidden">
+              <CtaLink href="/presale" variant="secondary">
+                <Wallet className="mr-2 h-4 w-4" />
+                Buy
+              </CtaLink>
+              <MobileSiteMenu />
             </div>
           </header>
 
@@ -219,7 +227,7 @@ export default async function ControlCentreArticlePage({ params }) {
                 priority
                 className="aspect-[4/3] rounded-[1.5rem] object-cover"
               />
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {article.quickFacts.map(([label, value]) => (
                   <div key={label} className="rounded-2xl border border-white/10 bg-black/20 p-3">
                     <div className="text-xs uppercase tracking-[0.18em] text-blue-100/45">

@@ -16,6 +16,7 @@ import {
   Gamepad2,
 } from 'lucide-react';
 import CountdownCard from './components/landing/CountdownCard';
+import MobileSiteMenu from './components/MobileSiteMenu';
 import {
   ARTEMIS_CONTRACTS,
   ARTEMIS_EXPLORER_ADDRESS_BASE,
@@ -163,10 +164,10 @@ export default function ArtemisLandingPage() {
               <Rocket className="w-5 h-5 text-blue-200" />
             </div>
             <div>
-              <div className="text-lg md:text-xl font-semibold tracking-[0.18em] text-blue-50 uppercase">
+              <div className="text-base sm:text-lg md:text-xl font-semibold tracking-[0.14em] sm:tracking-[0.18em] text-blue-50 uppercase">
                 Artemis Moon
               </div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">
+              <div className="hidden text-[11px] uppercase tracking-[0.3em] text-blue-200/45 sm:block">
                 Artemis Moon Network
               </div>
             </div>
@@ -210,7 +211,7 @@ export default function ArtemisLandingPage() {
     href="https://x.com/ArtemisControl"
     target="_blank"
     rel="noopener noreferrer"
-    className="w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
+    className="hidden w-10 h-10 rounded-2xl border border-blue-400/20 bg-black/20 md:flex items-center justify-center text-blue-200/70 hover:text-white hover:border-blue-300/40 transition"
   >
     <X className="w-4 h-4" />
   </a>
@@ -218,11 +219,12 @@ export default function ArtemisLandingPage() {
   <ButtonLink
     href="/presale"
     variant="outline"
-    className="rounded-2xl h-11 px-5 text-sm font-semibold"
+    className="rounded-2xl h-11 px-3 text-sm font-semibold sm:px-5"
   >
     <Wallet className="w-4 h-4 mr-2" />
     Buy $ARMN
   </ButtonLink>
+  <MobileSiteMenu hideAt="lg" />
 </div>
         </header>
 
@@ -239,7 +241,7 @@ export default function ArtemisLandingPage() {
 
             <h1
               id="hero-heading"
-              className="text-5xl md:text-7xl font-semibold leading-[0.95] tracking-tight"
+              className="text-4xl sm:text-5xl md:text-7xl font-semibold leading-[0.95] tracking-tight"
             >
               The coin
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-blue-400 to-sky-300">

@@ -37,6 +37,7 @@ import {
   ARTEMIS_PRESALE_ABI,
   ERC20_APPROVAL_ABI,
 } from '@/lib/web3/artemisContracts';
+import MobileSiteMenu from '../components/MobileSiteMenu';
 import {
   isUserRejectedError,
   mapTransactionErrorToNotice,
@@ -878,10 +879,10 @@ export default function ArtemisPresalePage() {
               <Rocket className="h-6 w-6 text-blue-200" />
             </div>
             <div>
-              <div className="text-xl font-semibold uppercase tracking-[0.18em] text-blue-50">
+              <div className="text-base font-semibold uppercase tracking-[0.14em] text-blue-50 sm:text-xl sm:tracking-[0.18em]">
                 ARTEMIS MOON
               </div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-200/45">
+              <div className="hidden text-[11px] uppercase tracking-[0.3em] text-blue-200/45 sm:block">
                 Artemis Moon Network
               </div>
             </div>
@@ -889,11 +890,12 @@ export default function ArtemisPresalePage() {
 
           <Link
             href="/"
-            className="inline-flex h-12 items-center justify-center rounded-2xl border border-blue-300/30 bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-300 px-5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(59,130,246,0.28)] transition-all duration-200 hover:from-blue-400 hover:via-sky-300 hover:to-cyan-200"
+            className="hidden h-12 items-center justify-center rounded-2xl border border-blue-300/30 bg-gradient-to-r from-blue-500 via-sky-400 to-cyan-300 px-5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(59,130,246,0.28)] transition-all duration-200 hover:from-blue-400 hover:via-sky-300 hover:to-cyan-200 md:inline-flex"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Mission Control
           </Link>
+          <MobileSiteMenu />
         </header>
 
         <section

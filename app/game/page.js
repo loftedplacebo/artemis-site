@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BookOpen, Calculator, Gamepad2, Rocket, Satellite, Wallet } from 'lucide-react';
+import MobileSiteMenu from '../components/MobileSiteMenu';
 
 const siteUrl = 'https://artemismoon.io';
 const gameUrl = '/games/artemis-solar-system/';
@@ -103,16 +104,16 @@ export default function ArtemisGamePage() {
               <Rocket className="h-5 w-5 text-blue-100" />
             </div>
             <div>
-              <div className="text-lg font-semibold uppercase tracking-[0.18em] text-blue-50 md:text-xl">
+              <div className="text-base font-semibold uppercase tracking-[0.14em] text-blue-50 sm:text-lg sm:tracking-[0.18em] md:text-xl">
                 Artemis Moon
               </div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-blue-100/55">
+              <div className="hidden text-[11px] uppercase tracking-[0.3em] text-blue-100/55 sm:block">
                 Solar System Game
               </div>
             </div>
           </Link>
 
-          <nav className="flex flex-wrap items-center gap-3">
+          <nav className="hidden flex-wrap items-center gap-3 md:flex">
             <NavButton href="/control-centre">
               <Satellite className="mr-2 h-4 w-4" />
               Control Centre
@@ -126,6 +127,14 @@ export default function ArtemisGamePage() {
               Buy $ARMN
             </NavButton>
           </nav>
+
+          <div className="flex items-center gap-3 md:hidden">
+            <NavButton href="/presale" primary>
+              <Wallet className="mr-2 h-4 w-4" />
+              Buy
+            </NavButton>
+            <MobileSiteMenu />
+          </div>
         </header>
 
         <section className="grid gap-6 pb-6 pt-9 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.55fr)] lg:items-end">
@@ -171,7 +180,7 @@ export default function ArtemisGamePage() {
           <iframe
             src={gameUrl}
             title="Artemis Solar System Trajectory Game"
-            className="h-[78vh] min-h-[680px] w-full rounded-[1.5rem] border-0 bg-black"
+            className="h-[72vh] min-h-[560px] w-full rounded-[1.5rem] border-0 bg-black md:h-[78vh] md:min-h-[680px]"
             loading="eager"
             allow="fullscreen; gamepad; autoplay"
           />

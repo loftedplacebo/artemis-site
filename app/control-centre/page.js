@@ -11,6 +11,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { controlCentreArticles, controlCentreUpdated } from './missionContent';
+import MobileSiteMenu from '../components/MobileSiteMenu';
 
 const siteUrl = 'https://artemismoon.io';
 const featuredNav = [
@@ -87,16 +88,16 @@ export default function ControlCentrePage() {
                 <Rocket className="h-5 w-5 text-blue-100" />
               </span>
               <span>
-                <span className="block text-lg font-semibold uppercase tracking-[0.18em] text-blue-50">
+                <span className="block text-base font-semibold uppercase tracking-[0.14em] text-blue-50 sm:text-lg sm:tracking-[0.18em]">
                   Artemis
                 </span>
-                <span className="block text-[11px] uppercase tracking-[0.32em] text-blue-100/50">
+                <span className="hidden text-[11px] uppercase tracking-[0.32em] text-blue-100/50 sm:block">
                   Control Centre
                 </span>
               </span>
             </Link>
 
-            <nav className="flex flex-wrap items-center gap-3">
+            <nav className="hidden flex-wrap items-center gap-3 md:flex">
               <ControlButton href="/presale" variant="secondary">
                 <Wallet className="mr-2 h-4 w-4" />
                 Buy $ARMN
@@ -106,6 +107,14 @@ export default function ControlCentrePage() {
                 Whitepaper
               </ControlButton>
             </nav>
+
+            <div className="flex items-center gap-3 md:hidden">
+              <ControlButton href="/presale" variant="secondary">
+                <Wallet className="mr-2 h-4 w-4" />
+                Buy
+              </ControlButton>
+              <MobileSiteMenu />
+            </div>
           </header>
 
           <nav
@@ -129,7 +138,7 @@ export default function ControlCentrePage() {
                 <Satellite className="mr-2 h-4 w-4" />
                 Artemis mission guides and Moon landing watch
               </div>
-              <h1 className="mt-6 max-w-4xl text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
+              <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[0.98] tracking-tight sm:text-5xl md:text-7xl">
                 Control Centre for the Artemis era.
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-8 text-blue-50/75">
@@ -158,7 +167,7 @@ export default function ControlCentrePage() {
                   priority
                   className="aspect-[4/3] rounded-[1.5rem] object-cover"
                 />
-                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
                   {[
                     ['Artemis III', '2027 demonstration'],
                     ['Artemis IV', 'Early 2028 landing watch'],
